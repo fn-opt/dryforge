@@ -1,20 +1,11 @@
-<!-- SYNC: this is the consumer (go) view of the Execution Graph defined, authoritatively, in
-     skills/{ready,set}/references/output-format.md ("The Execution Graph" section) and
-     skills/{ready,set}/references/dependency-calc.md. The producers own the schema; this file
-     restates only what go parses + the rules it must hold, and must stay consistent with them.
-     The shared per-task atoms are `depends` and the OPTIONAL `risk` tier (RISKY|MECHANICAL|NONE):
-     producers author both in output-format.md / dependency-calc.md, go parses both here — keep
-     all three consistent. Edit there → mirror here (and vice-versa). The plugin's per-skill
-     isolation is why the contract lives in more than one place; this banner is the guard against
-     drift. -->
-
 # graph-contract.md — the Execution Graph, from go's side (parse contract)
 
 go does **not** compute dependencies — a producer (ready or set) already did, against the whole
 project. go's job is to *parse* the graph faithfully and schedule from it. This file is the
 schema go reads against, so the parser has an authoritative reference instead of re-deriving the
-shape from memory. The producers' authoring view is in their `output-format.md` /
-`dependency-calc.md`; this is the same contract, stated for the consumer.
+shape from memory. The producers' authoring view is in their own `output-format.md` /
+`dependency-calc.md` (in the producer's references, not go's); this is the same contract, stated
+for the consumer.
 
 ## The graph — the only machine-parsed part of the 3-doc
 
@@ -62,9 +53,3 @@ regen_barriers:
   a **producer-side defect → stop and escalate**, never silently patch it.
 - **The plan body and the graph must agree** on the set of task ids. A task in the prose with no
   graph entry (or vice-versa) is a defect → escalate.
-
-## Why a copy lives here
-
-The producer and the consumer must share one contract, but plugin skills can't share a file at
-runtime. So the schema is stated in the producers (who author it) **and** here (where it is
-parsed). Keep the two in sync — the SYNC banner at the top names the canonical siblings.

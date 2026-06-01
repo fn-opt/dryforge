@@ -1,6 +1,3 @@
-<!-- SYNC: duplicated byte-for-byte across skills/ready/references/ and skills/set/references/
-     (plugin skills can't share a file at runtime). Mirror every edit in the sibling copy. -->
-
 # example-3doc.md — one complete, illustrative 3-doc
 
 A worked example so the shape of a real `handoff` + `spec` + `plan` is concrete, not just
@@ -25,8 +22,8 @@ request must never be processed twice.
 only with user approval). `plan.md` = task order + file targets (provisional; revise freely).
 Existing code = HOW reference, never the authority for WHAT.
 
-**File locations** (project-root-relative): `dryforge/spec.md`, `dryforge/plan.md`,
-`dryforge/handoff.md`.
+**File locations** (project-root-relative): `.dryforge/spec.md`, `.dryforge/plan.md`,
+`.dryforge/handoff.md`.
 
 **Execution shape.** One feature; 4 tasks; 2 waves. Wave 1: store + dedup key (parallel). Wave 2:
 endpoint + worker (parallel), then a single wiring step registers both.

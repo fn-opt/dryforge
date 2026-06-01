@@ -1,15 +1,15 @@
-# spec-review-prompt.md — per-task spec review
+# spec-review-prompt.md — conditional mid-run spec review
 
-After an implementer returns `DONE`, one subagent checks that task's diff against the **spec
-requirement** it was meant to realize — the "1" of spec-first 1+1, run **per task, before
-merge** (a spec violation caught after merge costs an undo/redo). This is *conformance*, not
-code quality (that is `reviewer-prompt.md`, per wave).
+Dispatched only when the orchestrator judges that a **RISKY task with downstream dependents** could
+cascade a deviation. Checks the task's diff against the **spec requirement** before merge — a spec
+violation caught late costs an undo/redo across dependent tasks. This is *conformance*, not code
+quality.
 
 ## Independence — what the reviewer is given
 
 To stay independent, the reviewer receives **only** (a) the spec requirement(s) for the task and
-(b) the raw diff / task branch — both **passed inline** (the worktree has no `dryforge/` files;
-`dryforge/` is gitignored). It is **not** given the implementer's summary, `concerns`, or test
+(b) the raw diff / task branch — both **passed inline** (the worktree has no `.dryforge/` files;
+`.dryforge/` is gitignored). It is **not** given the implementer's summary, `concerns`, or test
 claims — re-derive conformance from the diff itself, do not anchor on the author's narrative.
 
 For a declared **no-file-diff task** (state / operational / external — work whose result lives
@@ -31,17 +31,6 @@ per-wave reviewer's job. spec is "correct"; measure against it.
 
 If the task's spec slice names a testable risk (edge case, invariant, validation) but the task was
 classified RISK=NONE and shipped without a test, flag needs-fix — a real risk was sized away.
-
-## Scaffold / infrastructure tasks (degrade the check)
-
-Some tasks — most often a greenfield **Task 1** (scaffold the project: set up whatever it needs to
-exist before feature work, as the stack defines it) — realize **no behavioral spec requirement**;
-they exist to establish the harness the spec's *required-verification* needs. For such a task there is no behavior to conform to, so
-spec-review **degrades** to: does it stand up the structural preconditions the spec relies on (the
-verify commands run, the declared layout/exports exist as empty placeholders)? — not a behavioral
-trace. Don't manufacture a behavioral deviation where the spec asks for none; `pass` on the harness
-being correctly established. (The orchestrator still runs N reviews for N tasks; this just says what
-"conformance" means for a task with no behavioral surface.)
 
 ## Structured return
 

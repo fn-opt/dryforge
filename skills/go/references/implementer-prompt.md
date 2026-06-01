@@ -16,11 +16,11 @@ and **wording you adapt** (the example below is one phrasing, not a fixed script
   (command exit / render / API or state response), not necessarily a file diff — the
   captured-evidence floor still holds.
 - **Spec section** — the spec requirement this task realizes, **quoted inline in this prompt**
-  (the task worktree has no `dryforge/` files to read — `dryforge/` is gitignored). Build to the
+  (the task worktree has no `.dryforge/` files to read — `.dryforge/` is gitignored). Build to the
   spec, not just to the task line ("correct" = matches the spec).
 - **Hard gates** — the relevant non-negotiable constraints from the handoff.
 - **Verify-first, right-sized** — drive the work against the task's **real verification gate**: the
-  project's verify commands, discovered in GATHER (which may be a typecheck/lint/test set, a
+  project's verify commands, discovered by the producer (which may be a typecheck/lint/test set, a
   build/run, or a single command — not every stack has all three; never assume the triad).
   **Consume the producer-set tier — don't re-derive "is this risky?" from scratch.** This task is
   classified RISK=<tier> by the producer. RISKY → test-first RED→GREEN against the project's verify

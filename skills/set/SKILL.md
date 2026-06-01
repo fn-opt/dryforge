@@ -122,18 +122,20 @@ Conversion & thinking-base rules: `references/refinement-rules.md`.
 - **plan**: finalize (behavioral contracts + thinking-base + phase narrative + shared-write
   prose guidance).
 - **Execution Graph last** (after everything else is fixed): per-task `depends` +
-  `regen_barriers` (schema in output-format.md). Compute dependencies here — go
-  follows them, never re-judges. As the producer, also derive each task's optional `risk` tier
+  `regen_barriers` (schema in output-format.md). **Scaffold is not a task** — `go` performs
+  project initialization inline before dispatch; do not create a scaffold task in the graph.
+  Compute dependencies here — go follows them, never re-judges. As the producer, also derive
+  each task's optional `risk` tier
   (`RISKY | MECHANICAL | NONE`, per the heuristic in `references/dependency-calc.md`) while
   computing the graph — it sizes the implementer's per-task test ceremony only; omit it to let the
   implementer judge risk at build time.
-- Write `handoff.md`, `spec.md`, `plan.md` to `dryforge/` and notify. **Do not touch `.gitignore`,
-  and do not commit anything** — leave `dryforge/` as plain untracked files. `go` owns the git
-  mechanics: it ignores `dryforge/` on its own feature branch when it runs (and untracks a
-  `dryforge/` left tracked by a prior run), so `main` is never modified or made ahead of its remote
+- Write `handoff.md`, `spec.md`, `plan.md` to `.dryforge/` and notify. **Do not touch `.gitignore`,
+  and do not commit anything** — leave `.dryforge/` as plain untracked files. `go` owns the git
+  mechanics: it ignores `.dryforge/` on its own feature branch when it runs (and untracks a
+  `.dryforge/` left tracked by a prior run), so `main` is never modified or made ahead of its remote
   by set. Then notify: "run `/dryforge:go` to execute."
 - **Tell the user to tidy the source `{spec, plan}` inputs.** If those input files live *inside* the
-  repo as untracked files, they are **not** under `dryforge/`, so go's clean-tree precondition will
+  repo as untracked files, they are **not** under `.dryforge/`, so go's clean-tree precondition will
   see them as foreign untracked work and stop. In the notify message, advise moving them out of the
   repo or adding them to `.gitignore` before running go (set must not delete the user's inputs
   itself — just surface it).

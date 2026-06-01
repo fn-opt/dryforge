@@ -1,6 +1,3 @@
-<!-- SYNC: duplicated byte-for-byte across skills/ready/references/ and skills/set/references/
-     (plugin skills can't share a file at runtime). Mirror every edit in the sibling copy. -->
-
 # subagent-management.md — reading the project via subagents
 
 The project-reading phase (set's **GATHER** / ready's **EXPLORE**) protects
@@ -65,7 +62,7 @@ plus a one-line digest — do not inline it.
 
 ## Out of scope here
 
-- No writes, worktrees, or commits — those are go's concern; reading is read-only.
+- No project writes, worktrees, or commits — those are go's concern. Scratch files for oversized results are the only exception.
 - What to *do* with the findings (verify, refine, elicit, compute dependencies) is the later
   phases. This file is only about turning the project into a compact, trustworthy summary without
   flooding main context.

@@ -10,7 +10,7 @@
       "source": {
         "source": "url",
         "url": "https://github.com/fn-opt/dryforge.git",
-        "sha": "af106e99d612ca6a0fc225ead0adb1e6d5d686d4"
+        "ref": "v0.2.0"
       },
       "homepage": "https://github.com/fn-opt/dryforge"
     }

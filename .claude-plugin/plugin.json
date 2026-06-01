@@ -1,7 +1,7 @@
 {
   "name": "dryforge",
   "description": "Intent-to-implementation toolchain: elicit a spec+plan via dialogue (or refine your own) grounded in real project code, then orchestrate parallel execution with right-sized review",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "keywords": ["spec", "plan", "intent", "elicitation", "execution", "orchestration", "parallel", "subagent", "tdd", "code-review", "worktree"],
   "author": { "name": "fn-opt" }

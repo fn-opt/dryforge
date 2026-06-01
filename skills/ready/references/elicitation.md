@@ -70,8 +70,7 @@ gives the user a clickable selection UI instead of forcing them to type answers.
 
 ## Rhythm — one question or several?
 
-**Undecided — to be settled by testing** (operational efficiency vs richer ideation). Until then:
-ask the **highest-leverage questions first**; batching a few related questions in one turn is
+Ask the **highest-leverage questions first**; batching a few related questions in one turn is
 allowed when it serves the user. Don't pad with low-value questions to seem thorough.
 
 ## Transition gate — when to stop and write the spec (mixed)

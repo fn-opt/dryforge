@@ -1,12 +1,16 @@
-<!-- SYNC: duplicated byte-for-byte across skills/ready/references/ and skills/set/references/
-     (plugin skills can't share a file at runtime). Mirror every edit in the sibling copy. The
-     graph it produces is parsed by go per skills/go/references/graph-contract.md — keep consistent. -->
-
 # dependency-calc.md — the Execution Graph
 
 The **last** step of authoring: after spec, plan, and handoff are final, compute the
 machine-readable scheduling skeleton. The schema is in `output-format.md`; this file is *how*
 to fill it. Compute it once here — go follows it and never re-judges dependencies.
+
+## Scaffold is not a task
+
+Project initialization (manifests, dependencies, directory layout, build config, entry points) is
+**not a plan task**. `go` performs scaffold inline before dispatching implementers. Do not create a
+scaffold task in the Execution Graph. Exception: if scaffold itself is large enough to warrant a
+dedicated agent (complex infra, containers, CI pipelines — work that requires investigation or
+trial-and-error), it may appear as a task, but this is rare.
 
 ## Encode two things; leave the rest
 
@@ -80,8 +84,8 @@ a routes table, any registration point), prevent collision with a **single defer
 - **Package/namespace markers count too.** In a *new* package or namespace, a marker file the
   ecosystem requires every module to sit under — a package/module declaration file, or an
   aggregator/index created from scratch — is needed by **every** parallel task, so it is an implicit
-  shared-write: if each task creates it, they collide. Assign it to the **scaffold task** (so it
-  exists before the parallel wave) — don't leave each feature task to create it. (Identical empty
+  shared-write: if each task creates it, they collide. Assign it to the **scaffold step** (go's
+  inline setup, so it exists before the parallel wave) — don't leave each feature task to create it. (Identical empty
   markers happen to merge cleanly, but differing ones conflict — don't rely on the accident. What
   the marker is and whether the stack needs one is discovered from the project, never assumed.)
 

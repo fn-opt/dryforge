@@ -1,8 +1,3 @@
-<!-- SYNC: this file is duplicated byte-for-byte across skills/ready/references/ and
-     skills/set/references/ (plugin skills can't share a file at runtime). Any edit here MUST be
-     mirrored in the sibling copy. The Execution Graph schema below is also restated, for the
-     consumer, in skills/go/references/graph-contract.md — keep all three consistent. -->
-
 # output-format.md — the 3-doc contract
 
 Defines what a **producer skill** (set or ready) outputs and
@@ -19,7 +14,7 @@ stack-agnostic — project specifics are discovered while reading the project, n
 Must convey (structure is the agent's to design — 3 hard gates or 30):
 - **Document Roles** table + conflict resolution: spec defines *behavior*; plan defines
   *order and work targets*.
-- File locations (as project-root-relative paths, e.g. `dryforge/spec.md` — never
+- File locations (as project-root-relative paths, e.g. `.dryforge/spec.md` — never
   machine-absolute, so the 3-doc stays portable across the fresh go session) + the big
   picture (execution shape).
 - **Hard gates**: non-negotiable constraints the executing agent cannot derive from code alone.

@@ -2,115 +2,109 @@
 
 *[한국어](./README_KO.md)*
 
-> Say what you want to build. Two commands later, it's built.
+> Ready or Set, and Go!
+> Miswritten docs or a rough idea — two commands, and it's built.
+
+**Install:**
 
 ```
 /plugin marketplace add fn-opt/dryforge
 /plugin install dryforge
 ```
 
-## Two paths, same result
+---
 
-Whatever your starting point, dryforge gets you to solid, working code.
+## This is why dryforge was made.
 
-### Path 1 — Start from an idea
+> **It stops the agent from going off the rails.**
 
-```
-/dryforge:ready    →    /dryforge:go
-```
+- Starts coding before figuring out what to build.
+- Even with a spec, the work drifts away from intent.
+- The plan is full of code that doesn't match reality — the agent ends up fighting its own documents.
 
-You have an idea but no documents. `ready` talks with you — asks the right questions
-about what matters, handles what it can figure out from your code — and writes the spec
-and plan itself. Then `go` builds it.
+> **It fundamentally improves work efficiency.**
 
-### Path 2 — Start from documents
+- A one-line config change gets a full test suite. A single edit gets triple review.
+- Eight independent tasks run one after another, because no one computed which depends on which.
+
+### dryforge fixes both at once
+
+It straightens out document roles, validates them against real code, then builds with right-sized verification and parallel execution.
+
+**`set → go`** — Tears your docs apart and rebuilds them. Fixes what's wrong, fills what's missing, asks about what's unclear.
+
+**`ready → go`** — Asks deeply, writes the docs itself, and executes. End to end.
+
+---
+
+## What makes dryforge different: /set
+
+When you start a task, you rarely have zero documentation. There's almost always something — a spec you wrote, a plan from another tool, documents an agent produced in a previous session.
+
+The problem is that no one checks whether those documents are actually correct. Wrong paths, missing requirements, structures that don't match the code — catch them before execution and it's a fix; catch them after and it's a rework.
+
+Other plugins execute your documents as-is. `set` dissects them against your actual codebase — finds the parts that went wrong without you noticing, corrects them, and revives the documents to match your intent, preventing the work from drifting off course.
+
+Less rework. Higher quality output.
+
+---
+
+## Whatever your starting point, the result is the same
+
+### Path 1 — You already have documents
 
 ```
 /dryforge:set    →    /dryforge:go
 ```
 
-You already have a spec and plan — hand-written, or from another tool.
-Wrong file paths, missing pieces, code that doesn't match reality.
-`set` validates them against your actual codebase, fixes what's broken,
-fills what's missing, and makes them execution-ready. Then `go` builds it.
+`set` doesn't take your documents and run. It reads your actual codebase and validates first:
 
-## What it looks like
+- Catches wrong paths, nonexistent files, and broken structures.
+- Traces spec↔plan both ways — finds missing requirements and groundless tasks.
+- Strips out implementation code that crept in, leaving only functional goals.
+- Asks about ambiguities instead of guessing.
+- Computes task dependencies and determines parallel execution order.
+
+### Path 2 — Start from an idea
 
 ```
-You:  /dryforge:ready I want to add notifications.
-      Let users know when someone replies to their post.
-
-       dryforge reads your codebase and starts a conversation.
-       Not a checklist. Just the questions that matter.
-
-       "Should notifications go out in real time, or batched?
-        Real-time means adding WebSocket infrastructure.
-        Batched works with your current stack — a periodic job
-        that sends digest emails.
-        Which makes more sense for your users?"
-
-       You answer. It writes the spec and the plan.
-
-You:  /dryforge:go
-
-       Up to 8 tasks in parallel, each in its own isolated git worktree.
-       Spec review per task. Integration gate per wave.
-       Code review on the merged result.
-
-       When something's ambiguous, it asks — instead of guessing
-       and building the wrong thing.
+/dryforge:ready    →    /dryforge:go
 ```
 
-## How is this different?
+`ready` draws out your intent through conversation. Not a checklist — a real dialogue. It digs deep into functional intent, converges fast on technical choices by leading with recommendations. What it can derive from the code, it handles on its own. It only asks what only you can decide.
 
-If you've given an agent a big task before, you've probably seen this:
+It reads the code, writes documents grounded in your project's context, and self-validates that no decisions are missing.
 
-- It starts coding before understanding what you actually want.
-  Halfway through, you realize a critical decision was never discussed.
-- It follows the same ceremony on everything — full TDD on a config change,
-  triple review on a one-liner. It's following procedure, not adapting
-  to the task.
-- It fills the plan with code that's already stale by execution time.
-  The agent ends up fighting its own plan.
-- Tasks that could run in parallel go one by one, because no one
-  computed which depends on which.
+### `/dryforge:go` — Execution
 
-dryforge splits the work into two stages to fix this:
+Run in a fresh session (`/clear`).
 
-**Before building** — figure out what to build first.
-Ask deeply. Write the spec. Compute dependencies. Determine what can run in parallel.
+- **Parallel execution by dependency graph.** What can run together, runs together. Up to 8 concurrent tasks.
+- **Isolated environments.** Each task in its own git worktree. No file collisions.
+- **Right-sized verification.** Spec review per task, integration check and code review per batch.
+- **Asks when stuck.** Escalates to you instead of guessing.
+- **Main protection.** Main stays untouched until you approve.
 
-**While building** — work from a clean session, following the plan.
-Parallel agents in isolated worktrees. Verification sized to the task.
-When something's ambiguous, it escalates to you instead of papering over it.
-
-The spec is the ground truth. Everything flows from it.
+---
 
 ## Commands
 
-### `/dryforge:ready <goal>`
+| Command | What it does |
+|---|---|
+| `/dryforge:ready <goal>` | Understands intent through dialogue → writes docs grounded in your codebase |
+| `/dryforge:set <spec> <plan>` | Validates, fixes, and completes existing docs against real code |
+| `/dryforge:go` | Parallel execution, per-task verification, asks when stuck |
 
-Start from an idea. It reads your code, asks the questions that matter, and
-writes the spec and plan. Design decisions get explored deeply.
-What it can derive from the code, it handles on its own.
+## Updates
 
-### `/dryforge:set <spec> <plan>`
-
-Start from documents. It reads your code and finds what's wrong — broken paths,
-missing pieces, a plan that doesn't match reality. Fixes it, computes the
-dependency graph, and makes it ready for execution.
-
-### `/dryforge:go`
-
-Builds it. Start a fresh session (`/clear`) and run this.
-Parses the dependency graph into waves, spins up parallel agents in isolated
-git worktrees, runs spec review and integration gates, and asks before
-merging to main.
+```
+/plugin
+→ Marketplaces → dryforge → Enable auto-update
+```
 
 ## Requirements
 
-- **git** — uses git worktrees for isolation. No repo? It offers `git init`
-  so you can run locally.
+- **git** — uses worktrees for task isolation. No repo? It offers `git init`.
 - **Claude Code**
 
 ## License
