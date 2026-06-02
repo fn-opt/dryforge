@@ -41,6 +41,12 @@ are direct cost.
   implementer runs in place, **pinned to the pre-created absolute worktree path**, and verify
   location with `git rev-parse --show-toplevel` at the subagent's start.
 - **Create worktrees serially** — concurrent `git worktree add` contends on `.git/config.lock`.
+  **Worktree pool:** when multiple parallel waves exist, create the maximum number of worktrees
+  needed by any single wave **once** before the first parallel wave. Between waves, reset a
+  pooled worktree with `git checkout <new-base-tip> && git reset --hard` instead of
+  remove + recreate. Gitignored symlinks (dependency shares) survive `reset --hard`. After all
+  waves complete, **clean up all pooled worktrees in one batch** (not per-wave). This avoids
+  repeated create/remove cycles across waves.
 - **Task worktrees do not contain the 3-doc.** `.dryforge/` is gitignored, so a freshly-added task
   worktree has **no** `spec.md` / `plan.md` / `handoff.md`. Pass every spec slice, task contract,
   and hard gate **inline in the subagent prompt**.
@@ -51,11 +57,22 @@ are direct cost.
 - **Subagent output is bounded.**
 - **Practical parallelism ~5–8.**
 - **Don't disable the build cache or daemon.** Warm it once and share across worktrees.
+- **Enable incremental / caching mode at scaffold** when the project's build or verify tools
+  support it but default to off. Check the tool's config or documentation during scaffold setup;
+  if an incremental or cache option exists, enable it. Repeated verify runs (per-wave gates,
+  completion gate) benefit from warm caches. This is the orchestrator's scaffold responsibility,
+  not a per-task concern.
 - **Share dependencies; don't reinstall per worktree.** Symlink/reflink external deps; relink
   workspace-internal packages to this worktree's own source. **Caveat — path-mapping monorepos:**
   per-worktree install from the warm store is the safe default; don't force symlink sharing.
   **Cleanup caveat:** a dependency-store symlink is untracked; ignore it with a **slash-less**
   pattern (`<dir>`, not `<dir>/`); remove the symlink before safe-removing the worktree.
+- **Slash-less gitignore — verify at scaffold, before any worktree.** After scaffold commits,
+  confirm `.gitignore` uses slash-less patterns for dependency directories (the project's dependency
+  store directory, without a trailing slash). A trailing-slash pattern does not match a symlink, so
+  worktree dependency symlinks get staged by `git add`. Fix this **before** creating the first
+  parallel wave's worktrees — every worktree agent will otherwise hit the same papercut
+  independently.
 - **Worktrees isolate *files*, not *runtime*.** Shared external resources (DB, cache, queue, ports)
   are shared across all tasks. Treat mutations as dangerous; on unexpected state drift, **stop and
   escalate**.
@@ -123,7 +140,12 @@ re-dispatching past the ladder.
 4. **Integration gate** — run the project's verify commands on the merged + wired base; **green =
    exit 0, output captured**. This catches cross-task interactions. Failure → fix-dispatch or
    escalate. **If the producer found zero verify commands**, the absence of a gate is a recorded
-   decision, not silence.
+   decision, not silence. **Record the base tip SHA after the gate passes** (e.g. `GATE_SHA=$(git rev-parse HEAD)`) — the
+   completion gate compares against it to avoid redundant re-runs (see SKILL.md, Completion gate). **Run verify commands in parallel** when they are independent — capture each exit code separately
+   so failure attribution is clear. Wall time = max(commands), not sum. Pattern: issue all verify
+   commands in a single Bash call, backgrounding each and collecting its exit code individually
+   (e.g. `cmd1 & p1=$!; cmd2 & p2=$!; wait $p1; e1=$?; wait $p2; e2=$?`), then report per-command
+   pass/fail.
 5. **Spec review** (conditional) — only when the review policy calls for it.
 6. **Clean up** task worktrees — only after asserting ancestor (`git merge-base --is-ancestor`).
    Safe remove (no `--force`); remove share-symlinks first. Delete merged task branches.
@@ -134,10 +156,12 @@ re-dispatching past the ladder.
 **Sequential waves advance immediately** — no gate to wait for, so the next wave can begin as
 soon as the commit is verified and regen/wiring are done.
 
-**Parallel waves:** the next wave's provisioning (worktree creation + dependency share) MAY
-overlap the current wave's integration gate (Stream C begins after Stream A commits). But the
-next wave's **dispatch still waits for a green gate**. Fall back to fully serial advance if the
-lock/refresh bookkeeping is uncertain.
+**Parallel waves:** the next wave's provisioning (worktree creation + dependency share) SHOULD
+overlap the current wave's integration gate — begin provisioning as soon as the merge + wiring
+commits land, before the gate finishes. The next wave's **dispatch still waits for a green gate**,
+but the worktrees and dependencies are already ready. On gate failure the provisioned worktrees
+are harmless (no task work yet) — remove or reuse after the fix. Fall back to fully serial advance
+only if lock contention or refresh bookkeeping makes overlap unsafe.
 
 **Advisory findings are recorded, never dropped.** Findings not fix-dispatched must be explicitly
 marked accepted — never silently dropped.
@@ -148,9 +172,14 @@ marked accepted — never silently dropped.
 off the base — reuse a task worktree if present, else create a fresh one. The subagent commits;
 the orchestrator merges back under the same merge-gate.
 
-**Lightweight fix** (trivial advisory findings — 1–2 files, non-behavioral): the orchestrator edits
-directly on the base, commits, and re-runs the completion gate. No subagent. This is the exception
-to "the orchestrator does not edit task code" — scoped to trivial, non-behavioral changes only.
+**Lightweight fix** (trivial advisory findings — 1–2 files, non-behavioral): the orchestrator MUST
+triage each advisory after the final review. Trivial (1–2 files, non-behavioral — e.g. a missing
+attribute, a test warning, a one-line comment) → edit directly on the base, commit, re-run the
+completion gate. The default disposition is lightweight fix, not "accepted." Only mark an advisory
+as accepted when a fix is genuinely inappropriate (design trade-off, spec-intentional behavior).
+Do not skip advisories as "accepted" when a lightweight fix would take seconds. This is the
+exception to "the orchestrator does not edit task code" — scoped to trivial, non-behavioral
+changes only.
 
 ## Failure handling
 

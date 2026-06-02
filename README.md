@@ -49,6 +49,18 @@ Less rework. Higher quality output.
 
 ---
 
+## 2x faster than typical harnesses — without cutting corners
+
+Most harnesses burn time on ceremony: a worktree per task, dependency reinstall per worktree, full verification per wave, verbose progress narration. dryforge eliminates all of it.
+
+- **Adaptive isolation.** Sequential tasks commit directly — no worktree, no reinstall, no gate. Worktrees spin up only when parallel tasks actually need file isolation. Single-task wave overhead is zero.
+- **Active dependency optimization.** The orchestrator analyzes what each task actually needs. Infrastructure booting? Tasks that don't need it start immediately. Dependencies installing? Scaffold continues in parallel. Idle time approaches zero.
+- **Dependency graph computed upfront.** Which tasks wait on which, whether codegen or schema generation needs to re-run mid-flight — the producer calculates all of it. `go` just follows the graph.
+- **Adaptive review.** After all waves merge, a single reviewer checks the full diff for spec conformance and code quality in one pass. High-risk tasks get mid-run checks to catch drift early.
+- **Efficient output.** No narrating every internal step. You see key notifications and the final result. Output tokens are usage — dryforge spends them efficiently.
+
+---
+
 ## Whatever your starting point, the result is the same
 
 ### Path 1 — You already have documents
@@ -77,13 +89,11 @@ It reads the code, writes documents grounded in your project's context, and self
 
 ### `/dryforge:go` — Execution
 
-Run in a fresh session (`/clear`).
-
 - **Parallel execution by dependency graph.** What can run together, runs together. Up to 8 concurrent tasks.
-- **Isolated environments.** Each task in its own git worktree. No file collisions.
-- **Right-sized verification.** Spec review per task, integration check and code review per batch.
+- **Adaptive isolation.** Worktrees only when parallel tasks need physical file separation. Sequential tasks commit directly — zero overhead.
+- **Right-sized verification.** One final review by default. Mid-run checks only for high-risk tasks with downstream dependents.
 - **Asks when stuck.** Escalates to you instead of guessing.
-- **Main protection.** Main stays untouched until you approve.
+- **Main protection.** Main stays untouched until you approve. Greenfield projects work directly on main — no ceremony for an empty repo.
 
 ---
 
@@ -93,7 +103,7 @@ Run in a fresh session (`/clear`).
 |---|---|
 | `/dryforge:ready <goal>` | Understands intent through dialogue → writes docs grounded in your codebase |
 | `/dryforge:set <spec> <plan>` | Validates, fixes, and completes existing docs against real code |
-| `/dryforge:go` | Parallel execution, per-task verification, asks when stuck |
+| `/dryforge:go` | Parallel execution, right-sized verification, asks when stuck |
 
 ## Updates
 
@@ -104,7 +114,7 @@ Run in a fresh session (`/clear`).
 
 ## Requirements
 
-- **git** — uses worktrees for task isolation. No repo? It offers `git init`.
+- **git** — uses git for branch isolation and parallel worktrees. No repo? It offers `git init`.
 - **Claude Code**
 
 ## License

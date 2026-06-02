@@ -49,8 +49,9 @@ review, and integration gates. Runs in a fresh session (S2 — clean context, no
 - **Base determination.** Identify the project's main branch (docs / remote default / ask — do not
   guess). Verify `main` has no unpushed commits and the working tree has no modified/staged **tracked**
   files; if either fails, **stop and report**. Then classify:
-  - **Greenfield** (main contains only an init commit or is empty beyond producer-generated
-    `.dryforge/`): **base = main**. No feature branch — there is no production code to protect.
+  - **Greenfield** (main has no application code — only an init commit, `.gitignore`, or
+    producer-generated `.dryforge/`): **base = main**. No feature branch — there is no production
+    code to protect.
   - **Existing project** (main has meaningful committed code): **base = feature branch** created
     from main (`git checkout -b dryforge/<feature>`). Protects main from incomplete work.
   - **`.dryforge/` as untracked files** is the expected handoff state from the producer — do not
@@ -59,6 +60,9 @@ review, and integration gates. Runs in a fresh session (S2 — clean context, no
     commit. For existing projects this stays on the feature branch (never on main); for greenfield
     it is on main (acceptable — main has no meaningful history to protect). If a prior run left
     `.dryforge/` *tracked*, run `git rm -r --cached .dryforge/` first.
+- **Verify commands** — the project's build/test/lint commands are typically declared in the handoff
+  (hard gates section) or discovered during scaffold from the project's build scripts. Identify them
+  before the first wave; they are used in every integration gate and the completion gate.
 - Read **handoff first** (it governs: document roles, hard gates, execution shape), then spec and
   plan. Parse the plan's Execution Graph **per `references/graph-contract.md`** — the consumer-side
   schema (what the YAML fields mean and the rules go must hold when reading them). It mirrors the
@@ -88,10 +92,11 @@ Then, per wave:
 **Scaffold (inline, before dispatch).** Project initialization — manifests, dependencies, directory
 layout, build config, server/client entry points, shared types — is the orchestrator's job, not a
 task. On the base, perform scaffold inline: read the spec's tech decisions and set up the project so
-implementers start in a working skeleton. Scaffold is not in the Execution Graph. Exception: if
-scaffold itself is large enough to warrant a dedicated agent (complex infra, containers, CI pipelines
-— work that requires investigation or trial-and-error), dispatch it as an implementer before the
-first wave.
+implementers start in a working skeleton. Scaffold is not in the Execution Graph. **Batch file
+writes** — scaffold typically creates many independent files; write 4–5 per tool-call turn instead
+of one at a time. Each extra turn adds thinking overhead and an API round-trip. Exception: if scaffold requires **investigation or trial-and-error** to get right (e.g. container
+orchestration, CI pipeline configuration, or 30+ files across 3+ workspaces), dispatch it as an
+implementer before the first wave.
 
 **Review policy (natural language, orchestrator judgment).**
 Default: a single **final review** after all waves merge — one subagent checks the full diff for
@@ -99,10 +104,12 @@ spec conformance + code quality (`reviewer-prompt.md`). This replaces per-task s
 per-wave code-review for most graphs. Mid-run review is added only when the orchestrator judges
 that **a RISKY task with downstream dependents could cascade a deviation** — then that task gets a
 spec-review before merge. The judgment comes from the Execution Graph: `risk` + `depends`.
-**Lightweight fix path:** advisory findings from the final review that are trivial (1–2 files,
-non-behavioral) are fixed directly on the base — no fix-dispatch subagent. The orchestrator edits,
-commits, and re-runs the completion gate. Reserve fix-dispatch for substantive fixes that warrant
-independent review.
+**Lightweight fix path:** after the final review, the orchestrator MUST triage each advisory finding:
+trivial (1–2 files, non-behavioral, e.g. a missing `step` attribute, a test warning, a one-line
+comment) → edit directly on the base, commit, re-run the completion gate. Substantive (structural,
+multi-file, behavioral) → fix-dispatch subagent. The default is lightweight — only escalate to
+fix-dispatch when the change warrants independent review. Do not skip advisories as "accepted"
+when a lightweight fix would take seconds.
 
 **Sequential wave** (single task — the common case):
 
@@ -112,18 +119,21 @@ independent review.
    (`implementer-prompt.md`); shared-write constraints apply.
 2. **Collect** — the implementer returns a structured summary (status + files + tests + concerns);
    keep the summary only, not raw diffs.
-3. **Spec review** (conditional, `spec-review-prompt.md`) — only when the review policy calls for it
-   (RISKY task with downstream dependents).
-4. **Verify commit** — confirm the implementer's commit landed on the base (`git log`, non-empty diff
+3. **Verify commit** — confirm the implementer's commit landed on the base (`git log`, non-empty diff
    touching declared targets). Then run **regen barriers** and **deferred wiring** if applicable,
-   committed on the base. No integration gate — the implementer's self-checks on the cumulative base
-   are sufficient for a sequential wave. → next wave.
+   committed on the base.
+4. **Spec review** (conditional, `spec-review-prompt.md`) — only when the review policy calls for it
+   (RISKY task with downstream dependents). No integration gate — the implementer's self-checks on
+   the cumulative base are sufficient for a sequential wave. → next wave.
 
 **Parallel wave** (multiple tasks — worktree isolation required):
 
+0. **Worktree pool** (first parallel wave only) — if the graph has multiple parallel waves,
+   pre-create `max(wave sizes)` worktrees once; recycle between waves instead of remove+recreate
+   (see `orchestration.md`). For a single parallel wave, create on demand.
 1. **Create task worktrees** — serially (avoid `.git/config.lock` contention), each branched off the
-   base. **If the project has an installable dependency tree**, install or share it (sharing guidance
-   in `orchestration.md`).
+   base (or reset a pooled worktree to the current base tip). **If the project has an installable
+   dependency tree**, install or share it (sharing guidance in `orchestration.md`).
 2. **Dispatch implementers** — one subagent per task, in parallel, ≤8 at a time
    (`implementer-prompt.md`): right-sized verification, shared-write constraints, pinned worktree
    path.
@@ -138,25 +148,33 @@ independent review.
 6. **Integration gate** — run the project's verify commands on the merged result **after** wiring is
    committed; **green = exit 0, output captured**. This catches cross-task interactions that no single
    implementer could see. Failure → analyze → fix-dispatch or escalate.
-7. **Clean up** task worktrees — only after asserting each task's commit is an ancestor of the base
+7. **Clean up or recycle** task worktrees. If a later parallel wave exists, **recycle** pooled
+   worktrees (`git checkout <base-tip> && git reset --hard`) instead of removing. If no later
+   parallel wave needs them, **defer cleanup** to after the completion gate — batch-remove all
+   worktrees at once. Only remove after asserting each task's commit is an ancestor of the base
    (`git merge-base --is-ancestor`); if not, **do not remove** — escalate. Prefer safe `git worktree
-   remove` (no `--force`). Remove dependency-share symlinks first (a trailing-slash ignore pattern
-   does not match a symlink — use slash-less `<dir>`). Delete merged task branches (`git branch -d`).
-   A failed task's worktree and branch are preserved for diagnosis. → next wave.
+   remove` (no `--force`). Remove dependency-share symlinks first (slash-less `<dir>` pattern).
+   Delete merged task branches (`git branch -d`). A failed task's worktree and branch are preserved
+   for diagnosis. → next wave.
 
 **After all waves:**
 
-8. **Completion gate** — the full verify set on the base, mandatory regardless of wave types. Catches
-   cross-wave interactions that sequential self-checks cannot see.
+8. **Completion gate** — the full verify set on the base. **SHA reuse rule:** if the last parallel
+   wave's integration gate passed AND the base tip SHA has not changed since that gate (no
+   lightweight fix, no wiring, no regen committed after it), the completion gate is satisfied by
+   the prior gate's captured result — do not re-run. If any commit landed after the last gate,
+   re-run the full verify set. This avoids the common case where the completion gate is a pure
+   duplicate of the final wave's gate (df-3: 3.0 min saved).
 9. **Final review** — one subagent checks the **full diff on the base** (from initial state to current)
    for spec conformance + code quality (`reviewer-prompt.md`). **Clear = zero blocking findings,
-   recorded.** Apply the lightweight fix path for trivial advisories; fix-dispatch for substantive
-   findings.
+   recorded.** Apply the lightweight fix path for trivial advisories (MUST triage — see review
+   policy above); fix-dispatch for substantive findings. If the lightweight fix path commits on the
+   base, re-run the completion gate (the SHA has changed).
 
 **Advancing waves.** Sequential waves advance immediately after commit verification — no gate to
-wait for. For parallel waves, the next wave's provisioning MAY overlap the current wave's
-integration gate (Stream A/B/C mechanics in `orchestration.md`), but dispatch waits for a green
-gate. Fall back to fully serial advance if uncertain.
+wait for. For parallel waves, the next wave's provisioning SHOULD overlap the current wave's
+integration gate (`orchestration.md`, Advancing waves), but dispatch waits for a green gate.
+Fall back to fully serial advance if uncertain.
 
 Mechanics, CC dispatch constraints, status protocol, context budget, and failure handling live in
 `references/orchestration.md`.
@@ -179,7 +197,17 @@ Done only when ALL hold — on **evidence**, not assertion:
   on **cross-wave interactions** that no single wave's gate could see — so the completion gate re-runs
   the full verify set against the whole base as the final, all-together check. Running the
   full verify set every wave is the **safe baseline**; narrowing to an **affected-only** subset is an
-  optional efficiency lever only where the project's tooling supports reliable impact analysis.
+  optional efficiency lever for **intermediate (per-wave) gates only** — never for the completion
+  gate. Affected-only is permitted when the project's test runner supports change-based filtering
+  (e.g. the test runner's change-based filter — `--changed`, `--since`, `--lf`, or equivalent). When
+  using
+  affected-only, record what was skipped so the completion gate's full run covers it. The
+  **completion gate always runs the full verify set** — it is the cross-wave safety net.
+- **runtime smoke** — **in addition to** the verify commands above (which prove the code compiles
+  and tests pass): when the spec declares a running server or service, start it, send one
+  health-check or minimal request, confirm a 2xx response, then stop. A green build proves the
+  code compiles; a runtime smoke proves it boots and responds. Skip only when the project has no
+  runnable server component.
 - no residual escalation outstanding — and any task that returned `NEEDS_CONTEXT` / `BLOCKED` was
   escalated to the user **synchronously** (the orchestrator pauses the run and waits for the user's
   response — never a silent hang or a timeout-drop). Subagents themselves never call `AskUserQuestion`

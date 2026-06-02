@@ -157,4 +157,11 @@ Done only when BOTH hold:
 - **Intent-incompleteness probe (Phase 4) clear:** no residual blocking intent-gap. Residual →
   escalate to the user (do not self-fill).
 
-On approval, notify: "run `/dryforge:go` to execute."
+On approval, notify the user clearly:
+- What was produced (3-doc at `.dryforge/`).
+- **How to execute:** "run `/dryforge:go` in this session or a new session to execute."
+- **If running in the same session:** `/dryforge:go` works directly — the `disable-model-invocation`
+  restriction only blocks *other* skills/models, not dryforge's own skills.
+- **If the user sees a Skill invocation error** after approval (e.g. trying to invoke a non-dryforge
+  skill), explain that `disable-model-invocation: true` is active for this skill session and suggest
+  running the desired command in a new session.
