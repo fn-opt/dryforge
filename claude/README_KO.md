@@ -5,18 +5,11 @@
 > Ready or Set, and Go!
 > 의도와 다르게 써진 문서든, 머릿속 아이디어든. 명령어 두 개로 끝.
 
-**설치 — Claude Code:**
+**설치:**
 
 ```
 /plugin marketplace add fn-opt/dryforge
 /plugin install dryforge
-```
-
-**설치 — Codex:**
-
-```
-codex plugin marketplace add fn-opt/dryforge
-codex plugin add dryforge@dryforge
 ```
 
 ---
@@ -61,6 +54,7 @@ codex plugin add dryforge@dryforge
 대부분의 하네스는 의식에 시간을 씁니다: task마다 worktree 만들고, worktree마다 의존성 다시 깔고, wave마다 풀 검증 돌리고, 매 단계를 장황하게 보고하고. dryforge는 그걸 전부 없앱니다.
 
 - **적응형 격리.** 순차 task는 즉시 커밋 — worktree 없이, 재설치 없이, 게이트 없이. worktree는 병렬 task가 실제로 파일 격리가 필요할 때만 생깁니다. 단일 task wave의 오버헤드는 0입니다.
+- **적응형 디스패치.** 작고 위험 낮은 task는 inline으로 처리하고, subagent는 실제 병렬성·context 격리·독립 리뷰가 필요할 때 씁니다.
 - **능동적 의존성 최적화.** 오케스트레이터가 각 task가 실제로 뭘 필요로 하는지 분석합니다. 인프라 부팅 중? 인프라 안 쓰는 작업부터 먼저 시작. 의존성 설치 중? scaffold가 병렬로 진행. idle 시간이 0에 수렴합니다.
 - **의존성 그래프 사전 계산.** 어떤 task가 뭘 기다려야 하는지, 중간에 codegen이나 스키마 생성을 다시 돌려야 하는지까지 전부 producer 단계에서 계산합니다. `go`는 그래프를 따라가기만 합니다 — 순서를 다시 판단하거나 추측하지 않습니다.
 - **적응형 REVIEW.** 모든 wave가 머지된 뒤, 하나의 리뷰어가 전체 diff를 spec 적합성 + 코드 품질로 한 번에 검토합니다. 위험도 높은 태스크는 중간 리뷰를 통해 탈선을 막습니다.
@@ -73,7 +67,7 @@ codex plugin add dryforge@dryforge
 ### 경로 1 — 문서가 이미 있을 때
 
 ```
-set    →    go
+/dryforge:set    →    /dryforge:go
 ```
 
 `set`은 문서를 받아서 바로 실행하지 않습니다. 실제 코드베이스를 읽고 먼저 검증합니다:
@@ -87,17 +81,18 @@ set    →    go
 ### 경로 2 — 아이디어에서 시작
 
 ```
-ready    →    go
+/dryforge:ready    →    /dryforge:go
 ```
 
 `ready`가 대화로 의도를 끌어냅니다. 체크리스트가 아니라 진짜 대화 — 기능 의도는 깊게 파고, 기술 선택은 추천안부터 던져서 빠르게 수렴합니다. 코드 보면 알 수 있는 건 알아서 처리하고, 사용자만 결정할 수 있는 것만 물어봅니다.
 
 코드를 읽고, 프로젝트 맥락에 맞는 문서를 직접 씁니다. 빠진 결정이 없는지 자체 검증까지 마칩니다.
 
-### `go` — 실행
+### `/dryforge:go` — 실행
 
 - **의존성 그래프대로 병렬 실행.** 동시에 돌릴 수 있는 건 동시에. 최대 8개.
 - **적응형 격리.** 병렬 task만 worktree로 분리. 순차 task는 즉시 커밋 — 오버헤드 0.
+- **적응형 디스패치.** 낮은 위험도의 micro-task는 subagent 오버헤드 없이 처리하되, 커밋과 검증 증거는 유지합니다.
 - **작업에 맞는 검증.** 최종 리뷰 1회 기본. 위험도 높은 태스크만 중간 리뷰 추가.
 - **막히면 물어봄.** 추측 대신 사용자에게 올림.
 - **main 보호.** 승인 전까지 main은 건드리지 않음. 빈 프로젝트면 main에서 바로 작업 — 빈 repo에 의식은 필요 없음.
@@ -106,23 +101,23 @@ ready    →    go
 
 ## 명령어
 
-| 스킬 | 하는 일 |
+| 명령어 | 하는 일 |
 |---|---|
-| `ready <goal>` | 대화로 의도 파악 → 코드베이스에 맞는 문서 직접 작성 |
-| `set <spec> <plan>` | 기존 문서를 실제 코드에 맞춰 검증·수정·완성 |
-| `go` | 병렬 실행, 작업에 맞는 검증, 막히면 물어봄 |
-
-> 플랫폼별 호출 — Claude: `/dryforge:ready` · Codex: `$ready`.
+| `/dryforge:ready <goal>` | 대화로 의도 파악 → 코드베이스에 맞는 문서 직접 작성 |
+| `/dryforge:set <spec> <plan>` | 기존 문서를 실제 코드에 맞춰 검증·수정·완성 |
+| `/dryforge:go` | 병렬 실행, 작업에 맞는 검증, 막히면 물어봄 |
 
 ## 업데이트
 
-- **Claude:** `/plugin` → Marketplaces → dryforge → Enable auto-update
-- **Codex:** `codex plugin marketplace upgrade dryforge`
+```
+/plugin
+→ Marketplaces → dryforge → Enable auto-update
+```
 
 ## 요구사항
 
 - **git** — branch 격리와 병렬 worktree에 git을 사용합니다. repo가 없으면 `git init`을 제안합니다.
-- **Claude Code** 또는 **Codex** — 둘 중 하나에서 동작.
+- **Claude Code**
 
 ## 라이선스
 

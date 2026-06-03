@@ -5,18 +5,11 @@
 > Ready or Set, and Go!
 > Miswritten docs or a rough idea — two commands, and it's built.
 
-**Install — Claude Code:**
+**Install:**
 
 ```
 /plugin marketplace add fn-opt/dryforge
 /plugin install dryforge
-```
-
-**Install — Codex:**
-
-```
-codex plugin marketplace add fn-opt/dryforge
-codex plugin add dryforge@dryforge
 ```
 
 ---
@@ -61,6 +54,7 @@ Less rework. Higher quality output.
 Most harnesses burn time on ceremony: a worktree per task, dependency reinstall per worktree, full verification per wave, verbose progress narration. dryforge eliminates all of it.
 
 - **Adaptive isolation.** Sequential tasks commit directly — no worktree, no reinstall, no gate. Worktrees spin up only when parallel tasks actually need file isolation. Single-task wave overhead is zero.
+- **Adaptive dispatch.** Tiny low-risk tasks can run inline; subagents are reserved for real parallelism, context isolation, or independent review.
 - **Active dependency optimization.** The orchestrator analyzes what each task actually needs. Infrastructure booting? Tasks that don't need it start immediately. Dependencies installing? Scaffold continues in parallel. Idle time approaches zero.
 - **Dependency graph computed upfront.** Which tasks wait on which, whether codegen or schema generation needs to re-run mid-flight — the producer calculates all of it. `go` just follows the graph.
 - **Adaptive review.** After all waves merge, a single reviewer checks the full diff for spec conformance and code quality in one pass. High-risk tasks get mid-run checks to catch drift early.
@@ -73,7 +67,7 @@ Most harnesses burn time on ceremony: a worktree per task, dependency reinstall 
 ### Path 1 — You already have documents
 
 ```
-set    →    go
+/dryforge:set    →    /dryforge:go
 ```
 
 `set` doesn't take your documents and run. It reads your actual codebase and validates first:
@@ -87,17 +81,18 @@ set    →    go
 ### Path 2 — Start from an idea
 
 ```
-ready    →    go
+/dryforge:ready    →    /dryforge:go
 ```
 
 `ready` draws out your intent through conversation. Not a checklist — a real dialogue. It digs deep into functional intent, converges fast on technical choices by leading with recommendations. What it can derive from the code, it handles on its own. It only asks what only you can decide.
 
 It reads the code, writes documents grounded in your project's context, and self-validates that no decisions are missing.
 
-### `go` — Execution
+### `/dryforge:go` — Execution
 
 - **Parallel execution by dependency graph.** What can run together, runs together. Up to 8 concurrent tasks.
 - **Adaptive isolation.** Worktrees only when parallel tasks need physical file separation. Sequential tasks commit directly — zero overhead.
+- **Adaptive dispatch.** Low-risk micro-tasks avoid subagent overhead while keeping commits and verification evidence.
 - **Right-sized verification.** One final review by default. Mid-run checks only for high-risk tasks with downstream dependents.
 - **Asks when stuck.** Escalates to you instead of guessing.
 - **Main protection.** Main stays untouched until you approve. Greenfield projects work directly on main — no ceremony for an empty repo.
@@ -106,23 +101,23 @@ It reads the code, writes documents grounded in your project's context, and self
 
 ## Commands
 
-| Skill | What it does |
+| Command | What it does |
 |---|---|
-| `ready <goal>` | Understands intent through dialogue → writes docs grounded in your codebase |
-| `set <spec> <plan>` | Validates, fixes, and completes existing docs against real code |
-| `go` | Parallel execution, right-sized verification, asks when stuck |
-
-> Invoke per platform — Claude: `/dryforge:ready` · Codex: `$ready`.
+| `/dryforge:ready <goal>` | Understands intent through dialogue → writes docs grounded in your codebase |
+| `/dryforge:set <spec> <plan>` | Validates, fixes, and completes existing docs against real code |
+| `/dryforge:go` | Parallel execution, right-sized verification, asks when stuck |
 
 ## Updates
 
-- **Claude:** `/plugin` → Marketplaces → dryforge → Enable auto-update
-- **Codex:** `codex plugin marketplace upgrade dryforge`
+```
+/plugin
+→ Marketplaces → dryforge → Enable auto-update
+```
 
 ## Requirements
 
 - **git** — uses git for branch isolation and parallel worktrees. No repo? It offers `git init`.
-- **Claude Code** or **Codex** — runs on either.
+- **Claude Code**
 
 ## License
 

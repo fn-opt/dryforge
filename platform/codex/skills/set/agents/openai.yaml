@@ -1,0 +1,7 @@
+interface:
+  display_name: "dryforge set"
+  short_description: "Refine an existing spec and plan into a 3-doc."
+  default_prompt: "Use dryforge set with these spec and plan files: "
+
+policy:
+  allow_implicit_invocation: false

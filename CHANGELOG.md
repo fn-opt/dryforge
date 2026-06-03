@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0 (2026-06-03)
+
+- claude, codex multi-platform support + orchestration efficiency improve
+
 ## v0.2.5 (2026-06-02)
 
 - update v0.2.5 - orchestration effiency improvement

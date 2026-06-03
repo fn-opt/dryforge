@@ -7,11 +7,7 @@
       "name": "dryforge",
       "description": "Intent-to-implementation: Ready or Set, then Go.",
       "author": { "name": "fn-opt" },
-      "source": {
-        "source": "url",
-        "url": "https://github.com/fn-opt/dryforge.git",
-        "ref": "v0.2.5"
-      },
+      "source": "./claude",
       "homepage": "https://github.com/fn-opt/dryforge"
     }
   ]

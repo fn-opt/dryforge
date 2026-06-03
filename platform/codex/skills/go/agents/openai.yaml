@@ -1,0 +1,7 @@
+interface:
+  display_name: "dryforge go"
+  short_description: "Execute a dryforge 3-doc."
+  default_prompt: "Use dryforge go to execute the 3-doc in .dryforge/."
+
+policy:
+  allow_implicit_invocation: false

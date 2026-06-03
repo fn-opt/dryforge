@@ -1,0 +1,42 @@
+{
+  "name": "dryforge",
+  "version": "0.5.0",
+  "description": "Intent-to-implementation: elicit or refine a spec and plan grounded in real project code, then orchestrate dependency-aware parallel execution with right-sized review.",
+  "author": {
+    "name": "fn-opt"
+  },
+  "homepage": "https://github.com/fn-opt/dryforge",
+  "repository": "https://github.com/fn-opt/dryforge",
+  "license": "MIT",
+  "keywords": [
+    "spec",
+    "plan",
+    "intent",
+    "elicitation",
+    "execution",
+    "orchestration",
+    "parallel",
+    "subagent",
+    "tdd",
+    "code-review",
+    "worktree"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "dryforge",
+    "shortDescription": "Plan and execute implementation work from grounded specs.",
+    "longDescription": "dryforge turns a goal or existing spec and plan into a grounded 3-doc, then helps Codex execute it with dependency-aware waves, git isolation where needed, and right-sized verification.",
+    "developerName": "fn-opt",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use dryforge ready to plan this goal.",
+      "Use dryforge set with my spec and plan.",
+      "Use dryforge go to execute the 3-doc."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
