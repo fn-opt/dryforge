@@ -32,6 +32,17 @@ long as each exit code is captured separately. The completion gate remains the f
   and advances immediately.
 - **Parallel wave:** task worktrees branched from the base; ≤8 concurrent. Integration gate after
   merge catches cross-task interactions.
+- **No-file-diff tasks stay off the worktree path.** A task whose declared work targets are
+  **state / external only** — its result lives *outside* the tree (a DB migration run, an external
+  config applied, a remote registration), so it produces **no file diff** — is handled on the
+  **base sequentially** (a base-pinned implementer; verified by commit message + captured external
+  evidence per `implementer-prompt.md`), **never dispatched into a parallel worktree.** Two reasons:
+  the parallel **merge-gate is file-diff-based** (`git diff base...task` must touch declared targets)
+  and would reject its empty file diff; and a worktree isolates *files*, not the external runtime it
+  mutates, so parallel isolation buys nothing while costing worktree + dispatch overhead. If
+  topological sort places such a task in a multi-task wave, **peel it off** and run it on the base
+  before/after the worktree batch — do not put it in the pool. (Recognize it from the plan's work
+  targets: files | state | external — a task with no `files` target is this case.)
 - **Batch ≤8 concurrent.** If a parallel wave has more than ~8 tasks, split into sub-batches.
 - Do not recompute or reorder dependencies — the producer owns the graph. Parse failure / cycle /
   dangling `depends` → **stop and escalate** (producer-side defect).
@@ -57,7 +68,9 @@ the optimization removes dispatch overhead, not verification.
 - **Pin the implementer to the base directory when dispatched** — omit `isolation: worktree`; verify
   location with `git rev-parse --show-toplevel`. The implementer commits directly on the base.
 - **Verify the commit after return** — `git log` shows a new commit, and `git diff HEAD~1` touches
-  the task's declared targets. Never trust the subagent's self-report.
+  the task's declared targets. Never trust the subagent's self-report. (For a **no-file-diff task**
+  — declared targets are state/external only — verification is the commit message + captured external
+  evidence, not a file diff; there is no file diff to require.)
 - **No integration gate** — the implementer's self-checks (typecheck/lint/test/build per risk tier) run on
   the cumulative base, which already includes all prior waves. Cross-task interaction risk is zero
   (single task). The completion gate catches cross-wave interactions at the end.
@@ -162,7 +175,8 @@ re-dispatching past the ladder.
 ### Parallel wave (multiple tasks)
 
 1. **Merge serially** into the base (commit-existence verified first). **Merge-gate:** task branch
-   strictly ahead, diff touches declared targets (three-dot). Merge commit must satisfy hooks.
+   strictly ahead, diff touches declared **file** targets (three-dot). (No-file-diff tasks never
+   reach this path — they were handled on the base; see Wave scheduling.) Merge commit must satisfy hooks.
    Recovery: inspect hook output, verify branch state, retry with discovered convention; else escalate.
 2. **Regen barriers** — same as sequential. Commit if downstream depends on it.
 3. **Deferred wiring** — the single writer appends all registrations, **idempotently**

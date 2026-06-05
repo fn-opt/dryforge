@@ -88,7 +88,9 @@ Parse the graph → topological sort into waves (batches of **≤8 concurrent**)
 (per Base determination): for existing projects create the feature branch, for greenfield stay on
 main. On the base, set up `.dryforge/` (copy the 3-doc, gitignore, commit). The orchestrator reads
 `.dryforge/` here — task subagents do **not**; they receive spec slices inline (`orchestration.md`).
-Then, per wave:
+A task whose declared work targets are **state/external only** (no file diff) is handled on the base
+sequentially, **never dispatched into a parallel worktree** — the file-diff merge-gate cannot verify
+it and worktree isolation buys it nothing (`orchestration.md`, Wave scheduling). Then, per wave:
 
 **Scaffold (inline, before dispatch).** Project initialization — manifests, dependencies, directory
 layout, build config, server/client entry points, shared types — is the orchestrator's job, not a
@@ -129,7 +131,8 @@ sequential implementer.
 2. **Collect or record** — for a subagent, keep only its structured summary. For inline work, record
    files changed, commands run, and concerns in the same summary shape.
 3. **Verify commit** — confirm the commit landed on the base — the implementer's, or the orchestrator's on the inline path (`git log`, non-empty diff
-   touching declared targets). Then run **regen barriers** and **deferred wiring** if applicable,
+   touching declared targets; for a **no-file-diff task** the commit message + captured external
+   evidence is the verification, since there is no file diff). Then run **regen barriers** and **deferred wiring** if applicable,
    committed on the base.
 4. **Spec review** (conditional, `spec-review-prompt.md`) — only when the review policy calls for it
    (RISKY task with downstream dependents). No integration gate — the self-checks (the implementer's, or the orchestrator's captured evidence on the inline path) on

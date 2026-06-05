@@ -10,6 +10,18 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+# ── 0. branch guard — release only from main ──
+# The dogfooding workflow uses local dev branches (e.g. `next`). Publishing from the wrong
+# branch would commit the version bump and push/tag on that branch. Refuse anything but main.
+MAIN="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')"
+if [ -z "$MAIN" ]; then MAIN="main"; fi
+CUR="$(git rev-parse --abbrev-ref HEAD)"
+if [ "$CUR" != "$MAIN" ]; then
+  echo "중단: 현재 '$CUR' 브랜치 — 배포는 '$MAIN'에서만 (잘못된 브랜치 태그·push 방지)."
+  echo "      git checkout $MAIN 후 재실행. (dev→release 자동화는 ../promote.sh)"
+  exit 1
+fi
+
 # ── 1. ready↔set shared-reference sync ──
 # Single source killed claude↔codex drift, but ready and set still carry their own
 # copies of these shared references — verify they match before publishing.
