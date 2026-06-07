@@ -37,6 +37,25 @@ The agent can build. What's missing is the system that keeps the build honest.
 
 **A project harness that accumulates knowledge.** Architecture, domain rules, security boundaries, decisions and their rationale — captured once, carried forward. Every new session starts with full project context. The harness grows with your project and works without dryforge — any agent reads it and stays grounded.
 
+```
+your-project/
+├── CLAUDE.md                  # entry point for Claude Code — project identity + work rules
+├── AGENTS.md                  # entry point for Codex — identical content
+├── docs/
+│   ├── architecture.md        # system composition: components, flow, dependencies
+│   ├── business-rules.md      # domain logic: entities, invariants, edge cases
+│   ├── security.md            # security policy: protected assets, access, audit
+│   ├── standards.md           # the rules: hard gates, conventions, boundaries
+│   ├── engineering-notes.md   # hard-won knowledge: traps, mechanisms, checklists
+│   ├── operations.md          # how to run it: setup, build, deploy
+│   ├── contracts.md           # external interface contracts
+│   └── tracking/
+│       ├── status.md          # where the project stands vs. its full scope
+│       ├── decisions/         # decision records (ADRs) — what was chosen, and why
+│       └── findings.md        # known unresolved problems
+└── <module>/AGENTS.md         # per-module scope, boundaries, invariants
+```
+
 **Structured documents, validated against real code.** Spec and plan have strict roles — no missing requirements, no misalignment. Before execution, every document is checked against your actual codebase. Wrong paths, broken structures — caught and fixed. Other tools execute documents as-is. dryforge validates first.
 
 **Zero-waste execution.** The plan isn't written and then figured out at runtime — it's structured for optimal execution from the start. Dependencies, parallelism, risk levels, verification strategy — all computed at design time. dryforge then executes exactly that: up to 8 concurrent tasks, adaptive verification per risk, zero unnecessary overhead. The execution is precise because the plan was built to be precise.

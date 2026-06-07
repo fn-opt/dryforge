@@ -77,6 +77,15 @@ echo ""
 
 # ── 4. diff + version + commit message ──
 echo "=== 4/6 changes ==="
+# Collapse any unreleased local commits on $MAIN into staged changes — so a release works whether the
+# change was just staged (promote's squash-merge) OR already committed directly to main (e.g. a quick
+# patch after a previous release deleted the dev branch). These commits are unpushed, so collapsing
+# rewrites nothing public; the result is one clean release commit either way.
+AHEAD="$(git rev-list --count "origin/$MAIN..HEAD" 2>/dev/null || echo 0)"
+if [ "${AHEAD:-0}" -gt 0 ]; then
+  echo "  미배포 로컬 커밋 ${AHEAD}개 → staged로 병합(한 release 커밋으로 통합)"
+  git reset --soft "origin/$MAIN"
+fi
 git add -A
 if git diff --cached --quiet; then
   echo "변경 사항 없음. 배포 중단."; git reset HEAD -- . >/dev/null 2>&1; exit 0

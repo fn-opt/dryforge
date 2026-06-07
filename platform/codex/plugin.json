@@ -1,6 +1,6 @@
 {
   "name": "dryforge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Intent-to-implementation: elicit or refine a spec and plan grounded in real project code, then orchestrate dependency-aware parallel execution with right-sized review.",
   "author": {
     "name": "fn-opt"
