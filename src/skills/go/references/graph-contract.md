@@ -16,7 +16,7 @@ human/agent reading; this block is the scheduling skeleton:
 tasks:
   - id: T5
     depends: [T2, T3]      # task ids that must finish before T5 can start
-    risk: RISKY            # OPTIONAL: RISKY | MECHANICAL | NONE — sizes the implementer's test ceremony only
+    risk: RISKY            # OPTIONAL: RISKY | MECHANICAL | NONE — test ceremony + single-task wave execution mode
 regen_barriers:
   - { after: [T3], run: "<regen step — discovered by the producer while reading the project>" }
 ```
@@ -25,10 +25,19 @@ regen_barriers:
   the behavioral contract for each id lives in the prose.
 - **`tasks[].depends`** — the task ids that must finish first. This is the **only encoded
   judgment**. go follows it and never re-judges, adds, drops, or reorders an edge.
-- **`tasks[].risk`** *(OPTIONAL)* — `RISKY | MECHANICAL | NONE`. go reads it and passes the tier
-  to the implementer of that task. It sizes **only the per-task test ceremony** — never gate
-  topology, never whether code is verified or reviewed. If a producer omits it, go falls back to
-  the implementer judging risk at build time (today's behavior) — no break.
+- **`tasks[].risk`** *(OPTIONAL)* — `RISKY | MECHANICAL | NONE`. go has **two** consumer-side uses:
+  (1) it sizes the **per-task test ceremony** passed to the implementer; (2) for a **single-task
+  (sequential) wave** it picks the **execution mode** — `MECHANICAL` / `NONE` → the orchestrator
+  implements directly on the base; `RISKY` → dispatch a subagent in a worktree (independent
+  verification, A=A avoidance, base protected by the merge-gate). It still **never** changes gate
+  topology or whether code is verified or reviewed; multi-task waves always dispatch regardless of
+  risk. **Omitted → treated as `MECHANICAL`** (orchestrator-direct), and the implementer judges test
+  ceremony at build time as before — no break.
+- **Runtime risk upgrade.** If the producer marked a task `MECHANICAL` / `NONE` but go finds it is
+  actually `RISKY` while implementing (an unexpectedly complex state change, an external-system
+  integration), the orchestrator strengthens independent verification. It does **not** switch an
+  in-flight direct execution to a subagent mid-task, but it may fire a conditional spec-review or
+  direct the final review to focus on that task.
 - **`regen_barriers[]`** — `{ after: [ids], run: "<cmd>" }`: a cross-cutting step that must run
   **between** waves once `after` is satisfied (schema→client/type generation, contract→codegen,
   catalog rebuilds, …). The command is project-specific (discovered by the producer); go runs it

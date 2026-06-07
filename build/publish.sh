@@ -6,6 +6,7 @@
 # This script regenerates claude/ + codex/, validates both, and publishes once.
 
 set -euo pipefail
+export GIT_PAGER=cat   # release script must never pause in a pager (e.g. `git diff --stat`)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -22,20 +23,29 @@ if [ "$CUR" != "$MAIN" ]; then
   exit 1
 fi
 
-# ── 1. ready↔set shared-reference sync ──
-# Single source killed claude↔codex drift, but ready and set still carry their own
-# copies of these shared references — verify they match before publishing.
-echo "=== 1/6 ready↔set 동기화 검증 ==="
+# ── 1. shared-reference sync (byte-identical pairs) ──
+# Single source killed claude↔codex drift, but several references are deliberately duplicated
+# across skills (ready↔set producer share, migration↔go harness share, ready↔go foundation share).
+# Verify every pair matches before publishing — drift in a shared reference is silent corruption.
+echo "=== 1/6 공유 reference 동기화 검증 ==="
 sync_err=0
-for f in output-format.md dependency-calc.md example-3doc.md; do
-  if diff -q "$ROOT/src/skills/ready/references/$f" "$ROOT/src/skills/set/references/$f" >/dev/null 2>&1; then
-    echo "  ✓ $f"
+R="$ROOT/src/skills"
+check_sync() {  # $1 path_a  $2 path_b  $3 label
+  if diff -q "$1" "$2" >/dev/null 2>&1; then
+    echo "  ✓ $3"
   else
-    echo "DRIFT: ready/$f ≠ set/$f"
-    diff "$ROOT/src/skills/ready/references/$f" "$ROOT/src/skills/set/references/$f" || true
+    echo "DRIFT: $3"
+    diff "$1" "$2" || true
     sync_err=$((sync_err+1))
   fi
+}
+for f in output-format.md dependency-calc.md example-3doc.md; do
+  check_sync "$R/ready/references/$f" "$R/set/references/$f" "ready↔set: $f"
 done
+for f in harness-format.md harness-review.md; do
+  check_sync "$R/migration/references/$f" "$R/go/references/$f" "migration↔go: $f"
+done
+check_sync "$R/ready/references/foundation-format.md" "$R/go/references/foundation-format.md" "ready↔go: foundation-format.md"
 [ "$sync_err" -gt 0 ] && { echo "FAILED: $sync_err shared file(s) drifted — src에서 양쪽 맞춘 뒤 다시."; exit 1; }
 echo ""
 

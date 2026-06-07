@@ -15,10 +15,15 @@ Must convey (structure is the agent's to design — 3 hard gates or 30):
 - **Document Roles** table + conflict resolution: spec defines *behavior*; plan defines
   *order and work targets*.
 - File locations (as project-root-relative paths, e.g. `.dryforge/spec.md` — never
-  machine-absolute, so the 3-doc stays portable across the fresh go session) + the big
+  machine-absolute, so the 3-doc stays portable and survives archiving) + the big
   picture (execution shape).
 - **Hard gates**: non-negotiable constraints the executing agent cannot derive from code alone.
 - Intent decided while authoring but not captured in spec/plan.
+- **First cycle only (no project harness yet):** the handoff may carry a **Project Foundation**
+  section — the project-wide foundation (full domain model, technical decisions, future scope) that
+  seeds the harness `go` creates at the end. ready produces it through its first-cycle design system
+  (its `foundation-format.md`); set does not (go degrades to spec + code). Omit it in later cycles
+  (the harness has taken over the project-context role).
 
 ### spec — what to build (ground truth)
 Must convey: product behavior; key design rationale (decision + why); domain
@@ -51,8 +56,10 @@ regen_barriers:
 - `depends` is the **only encoded judgment** (which task needs which). the producer
   computes it; go follows.
 - `risk: RISKY | MECHANICAL | NONE` is an **optional** per-task atom alongside `depends`.
-  It sizes **only** the implementer's per-task test ceremony — it never changes whether code is
-  verified or reviewed, and never touches gate topology. Derive it per task (see
+  It sizes the implementer's per-task test ceremony — it never changes whether code is
+  verified or reviewed, and never touches gate topology. (go may also read it to choose a single-task
+  wave's execution mode, but that is a consumer-side use; the producer just derives the tier.) Derive
+  it per task (see
   `references/dependency-calc.md`): RISKY if the behavioral contract names an explicit edge case,
   invariant, state-coordination, or validation rule; NONE if the target is config / schema / docs /
   pure scaffold with no behavioral surface; otherwise MECHANICAL. This is a derivation heuristic
@@ -81,6 +88,9 @@ list, a routes table, …). Two layers, not a strict prediction:
    *handled conflict*, never silent corruption.
 
 ## Authoring rules (for the prose bodies)
+- **Match the user's language (language-agnostic)**: author the three docs in the language the user
+  communicates in, natively — discovered at runtime, never assumed, exactly like stack specifics. Not
+  translationese; the language this contract is written in does not constrain the 3-doc.
 - Replace premature implementation code with **behavioral contracts** (goal,
   invariants, what-to-test — not how).
 - **thinking-base**: record *decision + reason* where the executing agent could not derive

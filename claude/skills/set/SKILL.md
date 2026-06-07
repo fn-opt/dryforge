@@ -11,6 +11,11 @@ allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion
 
 # set
 
+> **Reply in the user's language, from your first message.** Every line you write — grounding,
+> progress notes, questions, and the 3-doc — goes in the language the user is communicating in,
+> written natively (never translationese). These instructions are in English; your output is not.
+> Full rule in Core principles below.
+
 Refine a `{spec, plan}` into an execution-ready **3-doc** (handoff + spec + plan)
 grounded in the real project code. The output is consumed by `go`. The 3-doc contract is in
 `references/output-format.md`.
@@ -45,6 +50,29 @@ intent). Notify the user which mode was detected at the start of Phase 1.
   criteria from the spec/project as needed.
 - **Stack-agnostic.** Discover project specifics (build targets, regen commands,
   conventions, registration points) during GATHER; never assume a stack.
+- **Harness-aware.** At GATHER, detect a project harness (a `CLAUDE.md` with dryforge structure + a
+  `docs/` directory). If present, load it as project context — don't re-ask what it answers, and if
+  this task may conflict with a harness decision, surface the conflict to the user (don't
+  self-resolve). If absent, proceed as before. set does not know the `docs/` structure.
+- **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed
+  and the *specific language* is discovered at runtime, never assumed: produce every user-facing
+  output — the dialogue **and the 3-doc** — in the language the user communicates in, written
+  **natively** (as a fluent speaker of that language would, never translationese). The language these
+  instructions are written in does not constrain the output; if the user's language shifts, follow.
+- **Talk to the user only when needed, in plain words — default to silence on process.** Emit
+  user-facing text only for: (a) a question you genuinely need answered, (b) the final result or a
+  concise summary, (c) a real blocker — optionally prefixed by a one-line, user-meaningful heading
+  for the current step. Nothing else: don't narrate *what* you're doing, *how*, or *why* a step is
+  needed; don't expose internal mechanics (reference/file names, phase/mode/lens labels, "loading
+  references", "Read N files"). Write what you do say in a **plain, non-technical register** — the
+  words a non-engineer would understand. This is your default voice, not a per-line check, so it
+  costs nothing. **Never surface internal tokens:** dryforge mechanism / coined terms (wave,
+  worktree, harness, delta, 3-doc, gate, seam, ROI collapse, spec-review, grounding, lens,
+  invariant), task / step / risk labels (`T1`, `Wave 2`, RISKY / MECHANICAL / NONE), or
+  project-internal jargon a non-engineer wouldn't recognize (library/tool names, config flags,
+  test-framework internals). **Don't soften internal logic into user-ish words — just omit it.** E.g.
+  "Starting a git repo here." — not "Since go will later need git for worktrees, I'll initialize one
+  (non-destructive setup)."
 
 ## Input & preconditions
 
@@ -66,6 +94,13 @@ intent). Notify the user which mode was detected at the start of Phase 1.
   section-by-section (the file is the store).
 
 ## Phase 1 — GATHER (understand the project)
+
+**Harness detection (first).** Check for a project harness: a `CLAUDE.md` carrying the dryforge
+structure **and** a `docs/` directory. If it exists, load `CLAUDE.md` + the relevant `docs/` as
+project context, pre-resolve what the harness already answers (don't re-ask), and if this task may
+conflict with a harness decision, identify it and **ask the user** (domain conflicts don't
+self-resolve). If it doesn't exist, proceed with the behavior below. set uses the harness only as
+reference — it does not know the `docs/` structure.
 
 **GATHER budget.** Start with a cheap inline map: repo instructions, file list, manifests,
 test/verify scripts, and the paths named by the incoming spec/plan. Dispatch read-only subagents
@@ -93,17 +128,32 @@ Per-pass rules: `references/gap-analysis.md`.
   (else coverage gap); every task is grounded in spec (else orphan).
 - **Pass 3 — cross-consistency**: spec internal contradictions, plan inconsistencies,
   spec↔plan divergence, project-convention fit.
+- **Pass 4 — content depth probe**: per category (domain, security, architecture, convention), is the
+  depth sufficient for the project's scale, or does it stay at generalities? Output a
+  sufficient/insufficient verdict + concrete pointers — this drives whether ELICIT runs. Unlike Pass
+  1, this does not auto-fix (depth is added through dialogue, not invented).
 - If a GATHER summary is not enough to judge, dispatch a focused follow-up read (GATHER =
   broad; here = narrow).
 
-## Phase 3 — RESOLVE (refine + ask)
+## Phase 3 — ELICIT (deepen thin areas; conditional) — `references/set-elicit.md`
+
+Conditional — run only when Pass 4 flagged a category **insufficient**; if all are sufficient, skip
+to RESOLVE. Force-load `references/set-elicit.md`. Deepen each insufficient area through dialogue:
+**extract** where the thin area is domain, **present** options where it is technical, reaching the
+matching floor (domain: rules verifiable, no vague modifiers; technical: decisions closed by user
+confirmation). **Cold mode still asks** — find the ambiguities in the files and pose them; never
+attribute intent to an unseen conversation. **Ready-redirect:** if the probe shows first cycle (no
+harness) + no code + many categories insufficient, do **not** deepen — tell the user the input is too
+thin a foundation for set and to use `/dryforge:ready`.
+
+## Phase 4 — RESOLVE (refine + ask)
 
 Conversion & thinking-base rules: `references/refinement-rules.md`.
 
 - **Auto-fix** (non-structural): premature code → behavioral contract; convention
   violations → project pattern; simple spec↔plan wording/cross-refs.
-- **Thinking-base**: where an S2 agent could not derive a decision from code, record
-  *decision + reason*. **Never fabricate** — if the reason is not on the record (stated in the
+- **Thinking-base**: where the executing agent (reading only the 3-doc + code) could not derive a
+  decision, record *decision + reason*. **Never fabricate** — if the reason is not on the record (stated in the
   spec/plan, or — in S1-live mode — in the live conversation), escalate to the user instead of
   inventing one. (Cold mode: the docs are the only record; don't attribute a reason to a
   conversation you can't see.)
@@ -114,7 +164,7 @@ Conversion & thinking-base rules: `references/refinement-rules.md`.
   errors. Briefly report what you auto-handled; ask only the unresolved, in priority order
   (blocking > data-integrity > missing-feature > optimization), each with a proposed answer.
 
-## Phase 4 — GENERATE (produce the 3-doc)
+## Phase 5 — GENERATE (produce the 3-doc)
 
 3-doc contract: `references/output-format.md`. Execution Graph: `references/dependency-calc.md`.
 
@@ -146,11 +196,13 @@ Conversion & thinking-base rules: `references/refinement-rules.md`.
 
 ## Completion gate (avoid self-judgment A=A)
 
-Done only when BOTH hold:
+Done only when ALL hold:
 
 - **Deterministic 0-signals**: coverage gaps = 0, orphan tasks = 0, structural mismatches = 0.
+- **Content depth**: every category the Pass-4 probe assessed is **sufficient** — anything flagged
+  insufficient was deepened in ELICIT (or the user explicitly accepted the limit / was routed to ready).
 - **Fresh-agent probe**: dispatch a subagent that has NOT seen the brainstorming; give it
-  only the 3-doc (it may read project code = the S2 environment) and ask what would block
+  only the 3-doc (it may read project code — what go consumes at run time) and ask what would block
   execution or what it would need to ask — have it **return a structured list of residual
   blockers/questions**. Point it explicitly at the **output / interface contract** too (the
   data model's entities/fields + constraints, response/output keys, status/enum value sets,

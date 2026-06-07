@@ -1,101 +1,73 @@
 # dryforge
 
-*[한국어](./README_KO.md)*
+**An all-in-one harness that keeps every step honest — from project design to code execution.**
 
-> Ready or Set, and Go!
-> Miswritten docs or a rough idea — two commands, and it's built.
+> Your agent works like a senior developer.
+
+dryforge leads your agent. Express your intent once — that's exactly what gets built. Senior-level execution, zero drift.
 
 **Install:**
 
+Claude Code:
 ```
 /plugin marketplace add fn-opt/dryforge
 /plugin install dryforge
 ```
 
----
-
-## This is why dryforge was made.
-
-> **It stops the agent from going off the rails.**
-
-- Starts coding before figuring out what to build.
-- Even with a spec, the work drifts away from intent.
-- The plan is full of code that doesn't match reality — the agent ends up fighting its own documents.
-
-> **It fundamentally improves work efficiency.**
-
-- A one-line config change gets a full test suite. A single edit gets triple review.
-- Eight independent tasks run one after another, because no one computed which depends on which.
-
-### dryforge fixes both at once
-
-It straightens out document roles, validates them against real code, then builds with right-sized verification and parallel execution.
-
-**`set → go`** — Tears your docs apart and rebuilds them. Fixes what's wrong, fills what's missing, asks about what's unclear.
-
-**`ready → go`** — Asks deeply, writes the docs itself, and executes. End to end.
+Codex:
+```
+codex plugin marketplace add fn-opt/dryforge
+codex plugin add dryforge@dryforge
+```
 
 ---
 
-## What makes dryforge different: /set
+**Building with AI got easy. Managing didn't.**
 
-When you start a task, you rarely have zero documentation. There's almost always something — a spec you wrote, a plan from another tool, documents an agent produced in a previous session.
+- The code gets written, but it drifts from what you actually wanted.
+- Specs miss requirements. Plans are full of implementation code that doesn't match reality.
+- Knowledge evaporates between sessions — every new conversation starts from zero.
+- You end up babysitting: re-explaining context, catching drift, redoing work.
 
-The problem is that no one checks whether those documents are actually correct. Wrong paths, missing requirements, structures that don't match the code — catch them before execution and it's a fix; catch them after and it's a rework.
-
-Other plugins execute your documents as-is. `set` dissects them against your actual codebase — finds the parts that went wrong without you noticing, corrects them, and revives the documents to match your intent, preventing the work from drifting off course.
-
-Less rework. Higher quality output.
-
----
-
-## 2x faster than typical harnesses — without cutting corners
-
-Most harnesses burn time on ceremony: a worktree per task, dependency reinstall per worktree, full verification per wave, verbose progress narration. dryforge eliminates all of it.
-
-- **Adaptive isolation.** Sequential tasks commit directly — no worktree, no reinstall, no gate. Worktrees spin up only when parallel tasks actually need file isolation. Single-task wave overhead is zero.
-- **Adaptive dispatch.** Tiny low-risk tasks can run inline; subagents are reserved for real parallelism, context isolation, or independent review.
-- **Active dependency optimization.** The orchestrator analyzes what each task actually needs. Infrastructure booting? Tasks that don't need it start immediately. Dependencies installing? Scaffold continues in parallel. Idle time approaches zero.
-- **Dependency graph computed upfront.** Which tasks wait on which, whether codegen or schema generation needs to re-run mid-flight — the producer calculates all of it. `go` just follows the graph.
-- **Adaptive review.** After all waves merge, a single reviewer checks the full diff for spec conformance and code quality in one pass. High-risk tasks get mid-run checks to catch drift early.
-- **Efficient output.** No narrating every internal step. You see key notifications and the final result. Output tokens are usage — dryforge spends them efficiently.
+The agent can build. What's missing is the system that keeps the build honest.
 
 ---
 
-## Whatever your starting point, the result is the same
+## What dryforge does
 
-### Path 1 — You already have documents
+**A project harness that accumulates knowledge.** Architecture, domain rules, security boundaries, decisions and their rationale — captured once, carried forward. Every new session starts with full project context. The harness grows with your project and works without dryforge — any agent reads it and stays grounded.
 
-```
-/dryforge:set    →    /dryforge:go
-```
+**Structured documents, validated against real code.** Spec and plan have strict roles — no missing requirements, no misalignment. Before execution, every document is checked against your actual codebase. Wrong paths, broken structures — caught and fixed. Other tools execute documents as-is. dryforge validates first.
 
-`set` doesn't take your documents and run. It reads your actual codebase and validates first:
+**Zero-waste execution.** The plan isn't written and then figured out at runtime — it's structured for optimal execution from the start. Dependencies, parallelism, risk levels, verification strategy — all computed at design time. dryforge then executes exactly that: up to 8 concurrent tasks, adaptive verification per risk, zero unnecessary overhead. The execution is precise because the plan was built to be precise.
 
-- Catches wrong paths, nonexistent files, and broken structures.
-- Traces spec↔plan both ways — finds missing requirements and groundless tasks.
-- Strips out implementation code that crept in, leaving only functional goals.
-- Asks about ambiguities instead of guessing.
-- Computes task dependencies and determines parallel execution order.
+---
 
-### Path 2 — Start from an idea
+## Entry points
+
+### Start from an idea.
 
 ```
-/dryforge:ready    →    /dryforge:go
+/dryforge:ready → /dryforge:go
 ```
 
-`ready` draws out your intent through conversation. Not a checklist — a real dialogue. It digs deep into functional intent, converges fast on technical choices by leading with recommendations. What it can derive from the code, it handles on its own. It only asks what only you can decide.
+Describe what you want. `ready` runs a senior-level brainstorming session — draws out your intent completely, asks until nothing is ambiguous. If you don't specify a tech stack, it recommends one. It designs to your project's scale — no over-engineering, no under-engineering. The result is a complete, execution-ready design. Then `go` builds it.
 
-It reads the code, writes documents grounded in your project's context, and self-validates that no decisions are missing.
+### Already have documents? Use them.
 
-### `/dryforge:go` — Execution
+```
+/dryforge:set → /dryforge:go
+```
 
-- **Parallel execution by dependency graph.** What can run together, runs together. Up to 8 concurrent tasks.
-- **Adaptive isolation.** Worktrees only when parallel tasks need physical file separation. Sequential tasks commit directly — zero overhead.
-- **Adaptive dispatch.** Low-risk micro-tasks avoid subagent overhead while keeping commits and verification evidence.
-- **Right-sized verification.** One final review by default. Mid-run checks only for high-risk tasks with downstream dependents.
-- **Asks when stuck.** Escalates to you instead of guessing.
-- **Main protection.** Main stays untouched until you approve. Greenfield projects work directly on main — no ceremony for an empty repo.
+You don't need `ready` to produce your documents. Bring whatever you have — from any tool, any session, or your own writing. `set` reads them, identifies gaps, asks what's unclear, and shapes them into something complete and executable. Then `go` runs it.
+
+### Not built with dryforge? Bring it.
+
+```
+/dryforge:migration
+```
+
+Your project wasn't built with dryforge? Doesn't matter. `migration` reads your codebase, generates the harness automatically, and asks when information is missing. The result is a project that's stronger than before — because even intent you never wrote down gets surfaced and captured.
 
 ---
 
@@ -103,21 +75,15 @@ It reads the code, writes documents grounded in your project's context, and self
 
 | Command | What it does |
 |---|---|
-| `/dryforge:ready <goal>` | Understands intent through dialogue → writes docs grounded in your codebase |
-| `/dryforge:set <spec> <plan>` | Validates, fixes, and completes existing docs against real code |
-| `/dryforge:go` | Parallel execution, right-sized verification, asks when stuck |
-
-## Updates
-
-```
-/plugin
-→ Marketplaces → dryforge → Enable auto-update
-```
+| `/dryforge:ready` | Brainstorm → complete design, scaled to your project |
+| `/dryforge:set` | Validate any existing documents, fill gaps, make them executable |
+| `/dryforge:go` | Zero-waste parallel execution from the designed plan |
+| `/dryforge:migration` | Onboard an existing project into dryforge |
 
 ## Requirements
 
-- **git** — uses git for branch isolation and parallel worktrees. No repo? It offers `git init`.
-- **Claude Code**
+- git
+- Claude Code or Codex
 
 ## License
 

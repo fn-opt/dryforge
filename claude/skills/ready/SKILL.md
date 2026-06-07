@@ -11,6 +11,11 @@ allowed-tools: Read, Edit, Write, Bash, Grep, Glob, AskUserQuestion
 
 # ready
 
+> **Reply in the user's language, from your first message.** Every line you write — grounding,
+> progress notes, questions, and the 3-doc — goes in the language the user is communicating in,
+> written natively (never translationese). These instructions are in English; your output is not.
+> Full rule in Core principles below.
+
 The **front door** of dryforge. Turn a natural-language goal ("I want to build / change X") into
 an execution-ready **3-doc** (handoff + spec + plan), grounded in the real project code, ready for
 `go`. This is the *native* path: it elicits intent through dialogue and authors the pair
@@ -39,6 +44,31 @@ which `go` (the destination) consumes. The 3-doc contract is in
   and the intent-incompleteness probe are all inline. Context protection is not worth the
   dispatch overhead — the main session already holds the dialogue context that grounds
   every decision.
+- **Harness-aware, two modes.** Detect a project harness at EXPLORE (a `CLAUDE.md` carrying the
+  dryforge structure **and** a `docs/` directory). **Later cycle** (harness present): load it as
+  project context and don't re-ask what it answers — but if this task may conflict with a harness
+  decision, surface the conflict to the user rather than resolving it yourself. **First cycle** (no
+  harness): run the first-cycle design system (SCOPING → DESIGN, Phases 1a/1b) before task-level
+  ELICIT. ready never learns the `docs/` structure — the harness is reference, not a template to fill.
+- **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed
+  and the *specific language* is discovered at runtime, never assumed: produce every user-facing
+  output — the dialogue **and the 3-doc** — in the language the user communicates in, written
+  **natively** (as a fluent speaker of that language would, never translationese). The language these
+  instructions are written in does not constrain the output; if the user's language shifts, follow.
+- **Talk to the user only when needed, in plain words — default to silence on process.** Emit
+  user-facing text only for: (a) a question you genuinely need answered, (b) the final result or a
+  concise summary, (c) a real blocker — optionally prefixed by a one-line, user-meaningful heading
+  for the current step. Nothing else: don't narrate *what* you're doing, *how*, or *why* a step is
+  needed; don't expose internal mechanics (reference/file names, phase/mode/lens labels, "loading
+  references", "Read N files"). Write what you do say in a **plain, non-technical register** — the
+  words a non-engineer would understand. This is your default voice, not a per-line check, so it
+  costs nothing. **Never surface internal tokens:** dryforge mechanism / coined terms (wave,
+  worktree, harness, delta, 3-doc, gate, seam, ROI collapse, spec-review, grounding, lens,
+  invariant), task / step / risk labels (`T1`, `Wave 2`, RISKY / MECHANICAL / NONE), or
+  project-internal jargon a non-engineer wouldn't recognize (library/tool names, config flags,
+  test-framework internals). **Don't soften internal logic into user-ish words — just omit it.** E.g.
+  "Starting a git repo here." — not "Since go will later need git for worktrees, I'll initialize one
+  (non-destructive setup)."
 
 ## Input & preconditions
 
@@ -68,6 +98,15 @@ hardcoded skip list.
 
 ## Phase 1 — EXPLORE (conditional; ground before deciding)
 
+**Harness detection (first).** Check whether a project harness exists: a `CLAUDE.md` carrying the
+dryforge structure **and** a `docs/` directory. If it exists, this is a **later cycle** — load
+`CLAUDE.md` and the relevant `docs/` files as project context, pre-resolve anything the harness
+already answers (don't re-ask it), and if this task may conflict with a harness decision, identify
+the conflict (trade-off? defect? intentional change?) and **ask the user** — domain conflicts don't
+self-resolve. If it does **not** exist, this is the **first cycle** — run Phases 1a/1b (the design
+system) before ELICIT. ready uses the harness only as reference; it does not know the `docs/`
+structure.
+
 If an existing codebase is in scope, read enough to ground every later decision: conventions, the
 public contract relevant to the goal, existing patterns the change must fit, and the test/verify
 harness. Read the project directly (Read, Bash, Grep) — no subagent dispatch. For greenfield
@@ -87,7 +126,29 @@ keep reading. If the project/goal has **no automated verify commands**, that abs
 decision to surface (a custom check, named human-approval evidence, or an explicit "no automated
 gate") — never left implicit, so go's gate is never undefined.
 
+## Phase 1a — SCOPING (first cycle only) — `references/project-scoping.md`
+
+**First cycle only.** Force-load `references/project-scoping.md`. Establish the project's character
+(identity, scale, hard constraints) and confirm it with the user — this sets the depth of everything
+downstream. Tell the user where you are and why (this is designing together, not an interrogation).
+Form a tentative read, update it through dialogue, then present the final read + depth direction and
+get confirmation before DESIGN. YAGNI gate: surface (don't silently cut) a design heavier than the
+project warrants.
+
+## Phase 1b — DESIGN (first cycle only) — `references/project-design-domain.md`, `references/project-design-technical.md`
+
+**First cycle only.** Force-load the two design references in order. **Domain first**
+(`project-design-domain.md`): extract the domain model from the user — entities, rules, invariants,
+edge cases — to the depth/breadth floor (domain is always deep, even for a small project). **Then
+technical** (`project-design-technical.md`): present architecture / security / convention /
+operations decisions as options + trade-offs and let the user decide (no silent decision). At each
+phase transition, tell the user what's done and what's next.
+
 ## Phase 2 — ELICIT (interactive dialogue — the heart)
+
+**First cycle:** ELICIT runs *after* SCOPING+DESIGN — it elicits *this task's* intent on top of the
+confirmed project foundation, not the whole project again. **Later cycle:** ELICIT runs right after
+EXPLORE, using the harness as context.
 
 Full guidance: `references/elicitation.md`. In short: lead with a recommendation; ask **deeply**
 about functional intent (behavior, edge cases, invariants, scope); **default-and-surface** load-
@@ -123,6 +184,11 @@ spec; **user-only intent-gap → reopen ELICIT and ask** (never auto-fix a guess
 no nested subagent → deliberately-separate self-adversarial pass. **Gate 5:** no blocking intent-
 gap remains (all fixed or user-answered). Only now build the plan.
 
+**First cycle:** additionally force-load `references/first-cycle-review.md` and run it alongside the
+intent probe — it checks the spec + Foundation are a sufficient *project* foundation (domain
+depth/breadth, technical decisions closed, security project-specific, no vague modifiers). A
+foundation gap only the user can fill reopens the matching DESIGN phase (1a/1b); never auto-fill it.
+
 ## Phase 5 — PLAN (decomposition for parallel execution)
 
 Load `references/output-format.md` (the 3-doc contract) and `references/dependency-calc.md` (the
@@ -149,6 +215,13 @@ document roles + conflict resolution, file locations (project-root-relative), ha
 **intentionality captured live in dialogue** that is not in spec/plan. Because produce captures
 intent directly (not reverse-engineered from foreign docs), this handoff should be richer.
 
+**First cycle:** force-load `references/foundation-format.md` and include a **Project Foundation**
+section in the handoff — the project-wide foundation from SCOPING/DESIGN (identity; the full domain
+model with `[implementation target]` / `[project context]` labels; the confirmed technical
+decisions; future scope), clearly labeled as **non-executable project context**. `go` reads it as
+context while implementing this task's spec, and as the source for the harness it creates at the end.
+Omit the Foundation in later cycles (the harness has taken over the project-context role).
+
 Write the three docs to `.dryforge/` and notify. **Do not touch `.gitignore`, and do not commit
 anything** — leave `.dryforge/` as plain untracked files. `go` owns the git mechanics: when it
 starts, it ignores `.dryforge/` on its own feature branch (and untracks a `.dryforge/` left tracked
@@ -171,7 +244,9 @@ Done only when BOTH hold:
 
 On approval, notify the user clearly:
 - What was produced (3-doc at `.dryforge/`).
-- **How to execute:** "invoke the `go` skill in this session or
-  a new session to execute."
-- **Fresh context:** `go` is designed to consume only the 3-doc. A new thread/session is usually
-  cleaner, but same-session execution is acceptable when the user explicitly asks for it.
+- **How to execute:** "invoke the `go` skill **in this session** to execute." Produce → run is a
+  single session — the design context carries straight into execution (and into the harness `go`
+  builds at the end).
+- **The 3-doc is the authority.** `go` executes against the 3-doc (kept self-sufficient because it is
+  archived for later cycles); the live design context aids `go`'s judgment but the 3-doc, not the
+  dialogue, is the contract.

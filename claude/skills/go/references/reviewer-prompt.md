@@ -1,13 +1,14 @@
-# reviewer-prompt.md — final review (spec + code combined)
+# reviewer-prompt.md — final review (spec + code + harness)
 
-After all waves merge and the integration gate passes, one reviewer subagent checks the **full
-diff on the base** (from initial state to current). This is the single review pass — it covers
-both spec conformance and code quality in one shot.
+After all waves merge, the integration gate passes, and the **harness has been created/updated**
+(`harness-lifecycle.md`), one reviewer subagent checks the **full diff on the base** (from initial
+state to current) **plus the harness**. This is the single review pass — spec conformance, code
+quality, and (when the harness was created/updated this cycle) harness content and format.
 
 > You are in a fresh session with no live user conversation — do **not** ask the user directly.
 > Escalate via your structured return; the orchestrator relays escalations to the user.
 
-## Scope — two lenses, one pass
+## Scope — four lenses, one pass
 
 **Lens 1: spec conformance.** Does the implementation do what the spec says — behavior, invariants,
 edge-case rules, API surface? Every spec requirement should be traceable to code in the diff. Flag
@@ -16,6 +17,15 @@ missing behavior, violated invariants, edge cases the spec specifies that the co
 **Lens 2: code quality.** Cross-task consistency, seam leaks where tasks meet, duplication, naming
 and pattern divergence across independently-written code. The integration gate already proved the
 combined state builds and runs — your scope is what mechanical gates cannot see.
+
+**Lens 3: harness content** and **Lens 4: harness format** — apply only when the harness was created
+or updated this cycle. Do **not** inline harness criteria here; apply the four dimensions in
+`references/harness-review.md` (provided with your dispatch) — content (substantive density + quality
+principles), format (self-containment, altitude, no references), completeness (required files
+present), and source-cross-check (omission vs. hallucination, future-scope content exempt). Using the
+shared `harness-review.md` keeps a single source of truth — `migration` verifies against the same
+criteria. Your dispatch states the user's language; flag a harness not written natively in it.
+Harness findings carry the same blocking/advisory split as code findings.
 
 ## No fixed checklist — derive the rubric
 

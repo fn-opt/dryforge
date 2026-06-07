@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.0 (2026-06-07)
+
+- official release v1.0.0
+
 ## v0.5.1 (2026-06-06)
 
 - v0.5.1 minor update

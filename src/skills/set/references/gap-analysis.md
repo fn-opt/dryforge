@@ -34,6 +34,26 @@ miss — you often can't tell from the docs alone. Classify; don't auto-resolve.
 - **convention fit** — against the Pattern summary from GATHER: does the plan follow the
   project's established patterns?
 
+## Pass 4 — content depth probe
+
+Passes 1–3 check that the docs are *structurally sound and consistent*; Pass 4 checks they are
+*deep enough*. A `{spec, plan}` can be well-formed and self-consistent yet too shallow to execute —
+rules stated as generalities, edges waved away, decisions left open. Probe each category for depth
+**proportional to the project's scale**:
+
+- **Domain depth** — are rules verifiable (a test case derivable from each), and are edge cases
+  concrete, or are they "handled appropriately"?
+- **Security depth** — are auth / authorization concrete and project-specific, or a generality
+  ("follows best practices")?
+- **Architecture depth** — are components and their communication explicit, or named without a
+  topology?
+- **Convention depth** — do the rules carry a violation criterion, or are they preferences?
+
+**Output:** a per-category **sufficient / insufficient** verdict + a concrete pointer to what is thin
+in each insufficient area. This output drives ELICIT (`set-elicit.md`): insufficient categories are
+deepened there; if every category is sufficient, ELICIT is skipped. (Unlike Pass 1, this probe does
+**not** auto-fix — depth is added through dialogue with the user, not invented.)
+
 ## Two completeness probes (fold candidates into the disposition)
 
 Beyond the three passes, two probes catch gaps the passes miss. They are deliberately

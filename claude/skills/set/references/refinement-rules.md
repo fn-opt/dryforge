@@ -37,13 +37,13 @@ designer's decision on its own. Test in order:
 
 1. Derivable from code? → **Yes**: no reason needed.
 2. Unsure if it's derivable? → include it (gray-zone default: an over-included reason is
-   cheap; a missing one derails S2).
+   cheap; a missing one derails the executing agent).
 3. Not derivable (a reason is needed) → is it **actually on the record** — stated in the spec/plan,
    or (S1-live mode) decided in the live conversation you can see?
    - **Yes** → record *decision + reason*.
    - **No — you'd have to invent it** → **do NOT write a reason. Ask the user** — this becomes
      one of the Escalate questions below (with a proposed answer). A fabricated reason is worse
-     than none: it sends S2 confidently the wrong way. (In **cold mode** there is no S1 to recall,
+     than none: it sends the executing agent confidently the wrong way. (In **cold mode** there is no live drafting conversation to recall,
      so the docs are the *only* record of intent: "stated in the docs" is the *only* source that
      counts — never attribute a reason to a conversation that isn't in front of you. Which mode you
      are in is detected per `set/SKILL.md`'s detection rule.)

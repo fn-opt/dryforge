@@ -26,12 +26,28 @@ long as each exit code is captured separately. The completion gate remains the f
 ## Wave scheduling
 
 - Topologically sort the plan's `depends` into waves: a wave = tasks with no unmet dependency.
-- **Classify each wave:** single task = **sequential**; multiple tasks = **parallel**.
-- **Sequential wave:** implementer works directly on the base (no worktree, no dependency install,
-  no integration gate). The implementer commits on the base; the orchestrator verifies the commit
-  and advances immediately.
+- **Classify each wave:** multiple tasks = **parallel** (worktrees). Single task = **sequential**,
+  whose execution mode is set by the task's `risk`:
+  - **`MECHANICAL` / `NONE` (or omitted)** → the **orchestrator implements directly on the base** (no
+    worktree, no dispatch, no integration gate) — commit on the base, verify, advance immediately.
+    The final review is the independent backstop, sufficient for low-risk work.
+  - **`RISKY`** → **dispatch one subagent in a worktree** + merge-gate (independent verification, A=A
+    avoidance; the merge-gate protects the base from risky work). This is the parallel-wave machinery
+    with a single task — the final review must not be the *only* independent check on risky work.
+  - A **no-file-diff** task always uses the base-pinned-subagent path (next bullet), regardless of risk.
 - **Parallel wave:** task worktrees branched from the base; ≤8 concurrent. Integration gate after
   merge catches cross-task interactions.
+- **ROI collapse (efficiency override).** A multi-task wave defaults to parallel worktrees, but the
+  orchestrator MAY collapse it (or all waves) to **orchestrator-direct on the base** when the
+  dispatch-ROI clearly doesn't pay — e.g. a **shared runtime** (one DB / container stack / port set)
+  throttles real parallelism, or a **greenfield** codebase where cross-agent convention drift would
+  cost more than the parallelism saves. **Surface the decision + reasoning to the user.** The final
+  review + completion gate remain the independent backstop. **Collapse does NOT skip the cascade-guard:**
+  the conditional mid-run spec-review still fires for any task meeting its narrow bar — **RISKY +
+  downstream dependents + deviation-cascade risk** — even when implemented inline. Collapse saves
+  dispatch / worktree / merge / per-wave-gate overhead, **not** that targeted guard. (RISKY alone
+  never triggers a spec-review — it only sizes test ceremony — so "more RISKY" ≠ "more spec-reviews",
+  and collapse stays cheap.)
 - **No-file-diff tasks stay off the worktree path.** A task whose declared work targets are
   **state / external only** — its result lives *outside* the tree (a DB migration run, an external
   config applied, a remote registration), so it produces **no file diff** — is handled on the
@@ -59,36 +75,55 @@ Before spawning any subagent, ask whether the dispatch buys at least one of:
 If none apply, keep the work inline. Inline work still needs a commit, evidence, and final review;
 the optimization removes dispatch overhead, not verification.
 
-## Sequential wave — dispatch constraints
+## Sequential wave — execution
 
-- **Inline micro-task path** — for a single task with `risk: NONE` or `risk: MECHANICAL`, at most two
-  targets, no external-state mutation, no downstream dependents, and no regen barrier triggered by
-  the task, the orchestrator may implement directly on the base. If uncertainty appears, stop inline
-  work and dispatch an implementer.
-- **Pin the implementer to the base directory when dispatched** — omit `isolation: worktree`; verify
-  location with `git rev-parse --show-toplevel`. The implementer commits directly on the base.
-- **Verify the commit after return** — `git log` shows a new commit, and `git diff HEAD~1` touches
-  the task's declared targets. Never trust the subagent's self-report. (For a **no-file-diff task**
-  — declared targets are state/external only — verification is the commit message + captured external
-  evidence, not a file diff; there is no file diff to require.)
-- **No integration gate** — the implementer's self-checks (typecheck/lint/test/build per risk tier) run on
-  the cumulative base, which already includes all prior waves. Cross-task interaction risk is zero
-  (single task). The completion gate catches cross-wave interactions at the end.
-- **Restore the orchestrator's cwd** — subagent runs can drift it.
-- **Subagent output is bounded** — instruct large results to a file + a digest, not inline.
+A single-task wave runs in one of three modes (by `risk` + target type; see Wave scheduling).
+
+- **Orchestrator-direct** (`MECHANICAL` / `NONE` / omitted, file-diff task). The orchestrator
+  implements directly on the base — it reads the task's behavioral contract + spec slice itself (no
+  prompt authoring, no dispatch), writes the code, runs right-sized verification (capturing command +
+  exit code), and commits on the base. No worktree, no dependency install, no integration gate, **no
+  implementer status protocol** — the orchestrator knows its own state. If the task turns out
+  ambiguous, behavioral, multi-file, or riskier than declared, treat it as a **runtime risk upgrade**
+  (`graph-contract.md`): strengthen verification (conditional spec-review or final-review focus); do
+  not silently push on. **Keep the sawtooth** — load the task's files, work, commit, drop what the
+  next task won't need.
+- **Subagent in a worktree** (`RISKY`, file-diff task). The parallel-wave machinery with one task:
+  create a worktree off the base, dispatch one implementer (pinned to the worktree absolute path; omit
+  `isolation: worktree`; verify with `git rev-parse --show-toplevel`), collect its structured
+  summary, then **merge-gate** into the base (strictly ahead + diff touches declared targets).
+  Independent verification is the point.
+- **No-file-diff task (any risk) — base-pinned subagent.** Dispatch one implementer pinned to the
+  **base** directory (omit `isolation: worktree`); it commits on the base. Verification is the
+  **commit message + captured external evidence** (command exit / render / API or state response),
+  not a file diff. (A worktree would isolate files, not the external runtime it mutates, and the
+  file-diff merge-gate can't verify it.)
+
+**Both dispatched modes:** verify the commit after return (`git log`; for file-diff, the diff touches
+declared targets — never trust self-report); **restore the orchestrator's cwd** (subagent runs can
+drift it); **subagent output is bounded** (large results → file + digest). **No integration gate** for
+a sequential wave — the self-checks run on the cumulative base (which already includes all prior
+waves); with a single task cross-task interaction risk is zero, and the completion gate catches
+cross-wave interactions at the end.
 
 ## Parallel wave — dispatch constraints (safety, non-negotiable; unordered)
 
 - **Do not pass `isolation: worktree` to implementer dispatch** — omit isolation so the
   implementer runs in place, **pinned to the pre-created absolute worktree path**, and verify
   location with `git rev-parse --show-toplevel` at the subagent's start.
-- **Create worktrees serially** — concurrent `git worktree add` contends on `.git/config.lock`.
-  **Worktree pool:** when multiple parallel waves exist, create the maximum number of worktrees
-  needed by any single wave **once** before the first parallel wave. Between waves, reset a
-  pooled worktree with `git checkout <new-base-tip> && git reset --hard` instead of
-  remove + recreate. Gitignored symlinks (dependency shares) survive `reset --hard`. After all
-  waves complete, **clean up all pooled worktrees in one batch** (not per-wave). This avoids
-  repeated create/remove cycles across waves.
+- **Create worktrees serially, under `.dryforge/worktrees/`.** Each task worktree lives at
+  `.dryforge/worktrees/<task-id>` — inside the gitignored `.dryforge/`, so worktrees never sprawl into
+  the project tree or get tracked, and cleanup stays contained. Concurrent `git worktree add` contends
+  on `.git/config.lock` → create serially. **Worktree pool:** when multiple parallel waves exist,
+  create the maximum number needed by any single wave **once** (under `.dryforge/worktrees/`) before
+  the first parallel wave. Between waves, reset a pooled worktree with `git checkout <new-base-tip> &&
+  git reset --hard` instead of remove + recreate. Gitignored symlinks (dependency shares) survive
+  `reset --hard`. After all waves complete, **clean up all pooled worktrees in one batch** (not
+  per-wave): remove the worktree entries, the now-empty `.dryforge/worktrees/` directory itself, and
+  any task scratch/temp dirs created under `.dryforge/`. **Leave no litter** — once the run finishes
+  (3-doc moved into `NNN/` at archiving), `.dryforge/` holds only `NNN/` archives, `status.json`, and
+  `backup/` (the active 3-doc lives at the root only between the producer writing it and archiving).
+  This avoids repeated create/remove cycles and a cluttered `.dryforge/`.
 - **Task worktrees do not contain the 3-doc.** `.dryforge/` is gitignored, so a freshly-added task
   worktree has **no** `spec.md` / `plan.md` / `handoff.md`. Pass every spec slice, task contract,
   and hard gate **inline in the subagent prompt**.
@@ -122,10 +157,18 @@ the optimization removes dispatch overhead, not verification.
     forbidden-mutations) are honored per the producer's dependency-calc rules.
   - **Ordering / external-state deps** — Go honors explicit `depends` and serializes declared
     external-state writers.
+  - **Name agent-created ephemeral resources deterministically.** When a task (or scaffold) spins up
+    an external runtime resource that takes a name — a container, a service instance, a database
+    schema, a namespace, a temp queue — derive the name from a stable identifier (project +
+    task/wave id), **never a random name.** Random names leak (the orchestrator can't find them to
+    clean up) and risk silent collisions across parallel tasks sharing the runtime. *What* needs a
+    name is discovered from the project (stack-agnostic); the rule is deterministic-not-random, and
+    tear the resource down when its task/wave completes.
 
 ## Agent status protocol
 
-Each implementer returns one status:
+Each **dispatched** implementer returns one status (orchestrator-direct sequential work has none —
+the orchestrator knows its own state):
 
 | Status | Meaning | Orchestrator response |
 |---|---|---|
@@ -146,6 +189,9 @@ re-dispatching past the ladder.
   (~100–200 tokens each) + spec-review verdicts (~20 tokens each).
 - **Temp-load → use → drop**: authoring an implementer prompt (the relevant plan+spec slice),
   analyzing a failure (the error output). Drop after the judgment.
+- **Sequential direct execution → sawtooth.** When the orchestrator implements a `MECHANICAL` /
+  `NONE` task itself, it temporarily holds that task's file context. Load → implement → commit →
+  **drop**; don't carry one sequential task's files into the next.
 - Keep raw diffs out of the orchestrator — spec review runs in the subagent's context.
 - **Watch retry bloat**: temp-loads have per-item caps but no total cap; repeated failures can
   swell the orchestrator. Compress to summaries and drop promptly.
@@ -160,17 +206,20 @@ re-dispatching past the ladder.
 
 ### Sequential wave (single task)
 
-1. **Choose inline vs dispatch** — apply the Dispatch ROI checklist. Inline micro-tasks are edited
-   directly on the base; everything else gets a pinned implementer.
-2. **Verify commit** — confirm the inline work or implementer's commit landed on the base (`git log`,
-   non-empty diff touching declared targets). Never trust self-report.
+1. **Pick the execution mode by `risk`** (see Wave scheduling): `MECHANICAL`/`NONE`/omitted →
+   orchestrator implements directly on the base; `RISKY` → a worktree subagent + merge-gate; a
+   no-file-diff task → a base-pinned subagent. (Details in "Sequential wave — execution".)
+2. **Land it on the base** — orchestrator-direct / no-file-diff: verify the commit on the base
+   (`git log`; file-diff touches declared targets; no-file-diff: commit message + captured external
+   evidence). RISKY worktree: verify commit existence, then **merge-gate** into the base (strictly
+   ahead + diff touches declared targets). Never trust self-report.
 3. **Regen barriers** — run barriers whose `after` is now satisfied. Commit regenerated output if a
    later task depends on it. Recovery: if a barrier exits non-zero, capture command + exit + stderr,
    analyze whether a prior merge broke a precondition; if it would overwrite merged files, escalate.
 4. **Deferred wiring** — if applicable, the single writer appends shared registrations directly
    (no parallel siblings to collide). Commit on the base.
 5. **Spec review** (conditional) — only when the review policy calls for it.
-6. **No integration gate.** The worker's self-checks ran on the cumulative base. → next wave.
+6. **No integration gate.** The self-checks ran on the cumulative base. → next wave.
 
 ### Parallel wave (multiple tasks)
 
@@ -201,12 +250,15 @@ re-dispatching past the ladder.
 **Sequential waves advance immediately** — no gate to wait for, so the next wave can begin as
 soon as the commit is verified and regen/wiring are done.
 
-**Parallel waves:** the next wave's provisioning (worktree creation + dependency share) SHOULD
-overlap the current wave's integration gate — begin provisioning as soon as the merge + wiring
-commits land, before the gate finishes. The next wave's **dispatch still waits for a green gate**,
+**Parallel waves:** **by default, overlap** the next wave's provisioning (worktree creation +
+dependency share) with the current wave's integration gate — begin provisioning as soon as the
+merge + wiring commits land, before the gate finishes. Gates are the **largest wall-clock sink**
+(verify/build/container time), so overlapping provisioning with them is a real, free speedup — do it,
+don't run strictly sequentially by default. The next wave's **dispatch still waits for a green gate**,
 but the worktrees and dependencies are already ready. On gate failure the provisioned worktrees
 are harmless (no task work yet) — remove or reuse after the fix. Fall back to fully serial advance
-only if lock contention or refresh bookkeeping makes overlap unsafe.
+only if lock contention or refresh bookkeeping makes overlap unsafe. (Intermediate per-wave gates may
+also use the test runner's affected-only filter; the completion gate always runs the full set.)
 
 **Advisory findings are recorded, never dropped.** Findings not fix-dispatched must be explicitly
 marked accepted — never silently dropped.
@@ -222,8 +274,8 @@ triage each advisory after the final review. Trivial (1–2 files, non-behaviora
 attribute, a test warning, a one-line comment) → edit directly on the base, commit, re-run the
 completion gate. The default disposition is lightweight fix, not "accepted." Only mark an advisory
 as accepted when a fix is genuinely inappropriate (design trade-off, spec-intentional behavior).
-Do not skip advisories as "accepted" when a lightweight fix would take seconds. This is one bounded exception (alongside the inline micro-task path) to "the orchestrator does not edit task code" — scoped to trivial, non-behavioral
-changes only.
+Do not skip advisories as "accepted" when a lightweight fix would take seconds. Scoped to trivial,
+non-behavioral changes only — substantive findings still go to an independent fix-dispatch.
 
 ## Failure handling
 

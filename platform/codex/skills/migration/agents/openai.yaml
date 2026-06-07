@@ -1,0 +1,7 @@
+interface:
+  display_name: "dryforge migration"
+  short_description: "Convert an existing project into the dryforge documentation system."
+  default_prompt: "Use dryforge migration to create a documentation harness for this project."
+
+policy:
+  allow_implicit_invocation: false

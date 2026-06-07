@@ -48,7 +48,7 @@ these project-specific constraints.
 ## Task risk tier (optional)
 
 Per task, optionally classify the behavioral risk so the implementer can size its **per-task test
-ceremony** — nothing else. The field shape is `risk: RISKY | MECHANICAL | NONE`. It is **optional**:
+ceremony**. The field shape is `risk: RISKY | MECHANICAL | NONE`. It is **optional**:
 omit it and the implementer judges risk at build time (today's behavior, no break). When present it
 is visible in the 3-doc the user reviews before go runs.
 
@@ -59,8 +59,9 @@ Derivation heuristic (a **floor, not a checklist** — judged per task):
 - **NONE** if the target is config / schema / docs / pure scaffold with no behavioral surface.
 - **MECHANICAL** otherwise.
 
-This sizes **only** the implementer's per-task test ceremony — it never changes whether code is
-verified or reviewed, and never touches gate topology.
+This sizes the implementer's per-task test ceremony — it never changes whether code is
+verified or reviewed, and never touches gate topology. (go may also read the tier to choose a
+single-task wave's execution mode — a consumer-side use; the producer only derives and emits it.)
 
 ## regen barriers
 
