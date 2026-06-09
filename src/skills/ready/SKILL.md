@@ -1,250 +1,355 @@
 ---
 name: ready
 description: >
-  From a natural-language goal, interactively elicit intent and produce an execution-ready
-  3-doc (handoff, spec, plan) for go — replacing third-party brainstorming + planning
-  in one skill. Use when the user invokes the `ready` skill with a goal.
-  Requires git.
+  From any input — a natural-language goal, existing docs (spec / plan / brain-dump), notes, or a
+  mix — interactively elicit and validate intent and produce an execution-ready 3-doc (handoff, spec,
+  plan) for go, replacing third-party brainstorming + planning in one skill. Input format is open;
+  the input is material, not ground truth. Use when the user invokes the `ready` skill. Requires git.
 ---
 
 # ready
 
-> **Reply in the user's language, from your first message.** Every line you write — grounding,
-> progress notes, questions, and the 3-doc — goes in the language the user is communicating in,
-> written natively (never translationese). These instructions are in English; your output is not.
-> Full rule in Core principles below.
+> **Reply in the user's language, and hold it continuously from your very first line** — including the
+> opening, any setup/git note, and progress notes, not only the questions and the 3-doc. Write
+> natively (never translationese). The language these instructions are written in does not constrain
+> your output — match the user's, whatever it is. Full rule in Core principles below.
 
-The **front door** of dryforge. Turn a natural-language goal ("I want to build / change X") into
-an execution-ready **3-doc** (handoff + spec + plan), grounded in the real project code, ready for
-`go`. This is the *native* path: it elicits intent through dialogue and authors the pair
-itself — one command, no third-party brainstorming/planning plugin.
+The **front door** of dryforge. Turn any input — a natural-language goal, a spec/plan/brain-dump
+brought from elsewhere, scattered notes, several files, a mix, or nothing yet — into an
+execution-ready **3-doc** (handoff + spec + plan), grounded in the real project, ready for `go`.
 
-Sibling entry point: `set` does the same for a `{spec, plan}` that **already exists**
-(brought from elsewhere) — surgical grounding of foreign input. Both converge on the same 3-doc,
-which `go` (the destination) consumes. The 3-doc contract is in
-`references/output-format.md`.
+**The input is *material*, not ground truth.** Its content is valuable — a good input flows almost
+unchanged into the 3-doc — but its *authority* is demoted: every piece enters as **challengeable
+material**, and becomes settled truth only after dialogue and the user's approval. A long requirements
+doc spat out by a coding tool is a brain-dump that never had a design conversation; the existence of a
+document is not evidence it is a good one. Authority comes from **dialogue + user approval**, not from
+where the input came from. The 3-doc contract is in `references/output-format.md`.
 
 ## Core principles (apply throughout)
 
-- **Serve the spec.** The spec is the contract — the binding WHAT, ground truth. The plan is a
-  *provisional blueprint* that realizes it (revise freely; not the authority). Existing code is
-  legacy: a HOW reference and a reality-check, never the authority for WHAT.
+- **Serve the spec.** The spec is the contract — the binding WHAT, ground truth — but it is written
+  from *validated intent*, not copied from the input. The plan is a *provisional blueprint* that
+  realizes it (revise freely). Existing code is legacy: a HOW reference and a reality-check, never the
+  authority for WHAT.
 - **Ask, don't assume — but don't ask the derivable.** Actively elicit what only the user holds
-  (intent, preferences, load-bearing choices). What the goal/code settles, resolve yourself.
-  Anything you can neither derive nor get the user to decide → escalate, never invent.
-- **Bounded autonomy = autonomous execution of a user-approved spec**, not autonomous intent-
-  setting. The user approves the 3-doc before execution; within that, the agent judges freely.
-- **Floor, not ceiling.** These phases are a proven scaffold: follow the structure, use judgment
+  (intent, preferences, load-bearing choices) and **what they didn't say but should have considered**.
+  What the input/code/harness settles, resolve yourself. Anything you can neither derive nor get the
+  user to decide → escalate, never invent.
+- **Conflicts and unknowns → ask, never self-resolve.** Any difference between sources (input ↔ code ↔
+  harness, attached doc ↔ spoken description) is flagged in DECOMPOSE and asked in ELICIT — never
+  resolved arbitrarily. Self-filling a conflict is the origin of drift.
+- **ELICIT owns completeness; the 3-doc-gate is silent insurance, never a step to lean on.** Elicit
+  **as if the gate does not exist.** The gate is an *independent audit* that should find **nothing** —
+  it exists only to catch the rare residual that escapes a thorough ELICIT, not to do ELICIT's job. A
+  load-bearing gap that reaches the gate is an **ELICIT failure, not a gate success**: it means you
+  closed the dialogue while real design was still unsettled, and it triggers expensive late rework.
+  **Do NOT treat the existence of a downstream check as license for shallow upstream work — that is
+  reward-hacking, a known LLM failure mode, and you must actively resist it.** Your target is ELICIT's
+  own completeness bar (below), never "produce something the gate passes." Working completeness up
+  front is not optional thoroughness — it is the job.
+- **Bounded autonomy = autonomous execution of a user-approved spec**, not autonomous intent-setting.
+  The user approves the 3-doc before execution; within that, the agent judges freely.
+- **Floor, not ceiling.** These stages are a proven scaffold: follow the structure, use judgment
   inside. Do not hardcode question lists or verification checklists.
-- **Stack-agnostic.** No stack/framework/library name in this skill. Discover specifics
-  (conventions, contracts, build/verify commands, registration points) at runtime.
-- **No subagents.** ready runs entirely in the main session. EXPLORE, SPEC, PLAN, HANDOFF,
-  and the intent-incompleteness probe are all inline. Context protection is not worth the
-  dispatch overhead — the main session already holds the dialogue context that grounds
-  every decision.
-- **Harness-aware, two modes.** Detect a project harness at EXPLORE (a `CLAUDE.md` carrying the
-  dryforge structure **and** a `docs/` directory). **Later cycle** (harness present): load it as
-  project context and don't re-ask what it answers — but if this task may conflict with a harness
-  decision, surface the conflict to the user rather than resolving it yourself. **First cycle** (no
-  harness): run the first-cycle design system (SCOPING → DESIGN, Phases 1a/1b) before task-level
-  ELICIT. ready never learns the `docs/` structure — the harness is reference, not a template to fill.
-- **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed
-  and the *specific language* is discovered at runtime, never assumed: produce every user-facing
-  output — the dialogue **and the 3-doc** — in the language the user communicates in, written
-  **natively** (as a fluent speaker of that language would, never translationese). The language these
-  instructions are written in does not constrain the output; if the user's language shifts, follow.
-- **Talk to the user only when needed, in plain words — default to silence on process.** Emit
-  user-facing text only for: (a) a question you genuinely need answered, (b) the final result or a
-  concise summary, (c) a real blocker — optionally prefixed by a one-line, user-meaningful heading
-  for the current step. Nothing else: don't narrate *what* you're doing, *how*, or *why* a step is
-  needed; don't expose internal mechanics (reference/file names, phase/mode/lens labels, "loading
-  references", "Read N files"). Write what you do say in a **plain, non-technical register** — the
-  words a non-engineer would understand. This is your default voice, not a per-line check, so it
-  costs nothing. **Never surface internal tokens:** dryforge mechanism / coined terms (wave,
-  worktree, harness, delta, 3-doc, gate, seam, ROI collapse, spec-review, grounding, lens,
-  invariant), task / step / risk labels (`T1`, `Wave 2`, RISKY / MECHANICAL / NONE), or
-  project-internal jargon a non-engineer wouldn't recognize (library/tool names, config flags,
-  test-framework internals). **Don't soften internal logic into user-ish words — just omit it.** E.g.
-  "Starting a git repo here." — not "Since go will later need git for worktrees, I'll initialize one
-  (non-destructive setup)."
+- **Stack-agnostic.** No stack/framework/library name in this skill. Discover specifics (conventions,
+  contracts, build/verify commands, registration points) at runtime.
+- **Subagents only at the two independent checks.** Every stage that *builds* intent — ORIENT,
+  DECOMPOSE, ELICIT, SPEC+REVIEW, PLAN, HANDOFF — runs **inline in the main session** (intent grounding
+  must see *raw* context, not a summary — the same reason migration is inline-only). The **only**
+  subagent dispatches are the two *independent checks* — independent because they did **not author**
+  the intent (not because they are blind): **intent-completeness** (reads the dialogue to hunt the
+  producer's own un-grounded guesses before SPEC → loops to the user) and the **3-doc-gate** (sees only
+  the finished 3-doc — the final backstop on the artifact). Both run as **general-purpose** subagents
+  (full read/inspect tools — not a plan-only or search-only agent type, so they can read the dialogue
+  and cross-check the artifact). Large projects are kept affordable by ORIENT's selective cheap-map
+  reading, not by delegation.
+- **Harness-aware, two modes (cycle is the only branch).** The entry branches on **one** fact:
+  `.dryforge/status.json`. **Delta** (present): load the harness (`CLAUDE.md` / `AGENTS.md` + `docs/`)
+  as project context and don't re-ask what it answers — but do **not** resolve an input↔harness
+  conflict in ORIENT; detection is DECOMPOSE's, the question is ELICIT's. **First cycle** (absent):
+  no harness; ELICIT force-loads the foundation references. ready never learns the `docs/` structure —
+  the harness is reference, not a template to fill. (Physical document presence does **not** branch —
+  that was the old two-entry split, now unified into this one door.)
+- **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed and
+  the *specific language* is discovered at runtime, never assumed: produce every user-facing output —
+  the dialogue **and the 3-doc** — in the language the user communicates in, written **natively** (as
+  a fluent speaker would, never translationese). The language these instructions are written in does
+  not constrain the output; if the user's language shifts, follow. **Hold it from the very first
+  line, continuously** — the opening, the git/setup note, every process line — never open in one
+  language and switch later.
+- **Talk to the user only when needed — between beats, say nothing.** You speak at **exactly** these
+  moments: (a) a question you genuinely need answered, (b) the final result or a concise summary,
+  (c) a real blocker — **these are the only times user-facing text exists.** If what you are about to
+  emit is none of (a)/(b)/(c), the correct output is **nothing**. **Between those beats, stay silent.**
+  Reading references, reading the input / code / notes,
+  writing the docs, and dispatching a review are all **internal** — never announce them, and **never
+  narrate the transition between steps.** No transition lines — "now I'll write the plan", "먼저 양식을
+  확인하고", "let me read the guide", "Now I'll dispatch the review", "Now the spec…" (announcing each
+  document as you write it) all leak. (Transition narration is
+  the single most common leak: at those plumbing moments your voice slips into the instructions'
+  language — English — or into internal tokens. The cure is to emit *nothing* there, not to translate
+  it.) The user sees the beats, never the plumbing between them. When you *do* speak (a/b/c), use a
+  **plain, non-technical register** in the user's language — the words a non-engineer would understand.
+  This is your default voice, not a per-line check, so it costs nothing.
+  **Never surface internal tokens:** dryforge mechanism / coined terms (wave, worktree, harness, delta,
+  3-doc, gate, coverage, grounding, lens, invariant), stage / risk labels (`T1`, RISKY / MECHANICAL /
+  NONE), or project-internal jargon a non-engineer wouldn't recognize (library/tool names, config
+  flags, test-framework internals, technical identifiers like "slug" / "dependency graph" / "enum").
+  **Don't soften internal logic into user-ish words — just omit it.**
+  E.g. "Starting a git repo here." — not "Since go will later need git for worktrees, I'll initialize
+  one (non-destructive setup)."
 
 ## Input & preconditions
 
-- Invocation: the user invokes the `ready` skill with a natural-language goal. Treat the user's prompt text as the goal; if
-  it is empty or only says to use the skill, ask what they want to build or change.
+- Invocation: the user invokes the `ready` skill. The input may be a goal, file path(s), prose, a mix,
+  or empty. If it is empty or only says to use the skill, ask what they want to build or change.
 - **git required.** If the project is not a git repo, offer to run `git init` **and make an initial
-  commit** (an empty repo has no HEAD, so go could not create a worktree later). Worktree
-  isolation in go depends on git. If git is not installed, stop and say so. This holds for
-  both greenfield (0→1) and existing projects — code presence is *not* the deciding factor.
+  commit** (an empty repo has no HEAD, so go could not create a worktree later). If git is not
+  installed, stop and say so. This holds for both greenfield and existing projects — code presence is
+  *not* the deciding factor.
 - **Output location.** The 3-doc is written to `.dryforge/` at the project root as plain files. You
-  do **not** touch `.gitignore` and do **not** commit anything — `go` owns all git mechanics for
-  `.dryforge/` (it ignores the docs on its own feature branch when it runs). Keep the
+  do **not** touch `.gitignore` and do **not** commit anything — `go` owns all git mechanics. Keep the
   produce=plan / run=do boundary: produce writes documents, run touches git.
 
-## Phase 0 — INTAKE
+## Stage map + cycle-conditional reference loading
 
-From the goal, form a reasonable, standard, YAGNI-sized rough conception immediately (the starting
-point you will refine through dialogue). Note whether an existing codebase is in scope.
+Run the stages in order. Force-load each stage's references at that stage **(silently — reference
+loading and subagent dispatch never produce user-facing text)**; `[first]+` rows load only
+in a first cycle (`status.json` absent). The cycle branches *scope and conditional loading* only — the
+stage sequence is identical for first and delta.
 
-Also read the goal's **task type** — greenfield / feature-add / refactor-no-new-scope / docs-config
-— and let it set ELICIT depth. A low-blast-radius, zero-new-contract goal (a one-line change, a
-docs or config edit, a refactor introducing no new behavior) **downshifts** the dialogue: don't
-over-interrogate functional intent that isn't there — still emit a skeletal-but-VALID 3-doc (every
-section present, gates met, just lighter). A substantive goal keeps the full "ask deeply about
-functional intent" depth below. This is a runtime judgment of where the goal actually sits, not a
-hardcoded skip list.
+```
+Core principles  inline (subagents only at intent-completeness + 3-doc-gate) · understand-not-guess ·
+                 stack/language-agnostic · conflict→ELICIT · floor not ceiling · user-language native
+ORIENT           absorb input + ground code/harness · branch on status.json     (no refs)
+DECOMPOSE        decompose.md · grounds-gate.md
+ELICIT           elicitation.md · gap-analysis.md · intent-review.md · grounds-gate.md
+       [first]+  project-scoping.md · project-design-domain.md · project-design-technical.md ·
+                 first-cycle-review.md · foundation-format.md
+intent-completeness  intent-completeness.md  ← independent guess-hunt → loop to user (subagent)
+SPEC + REVIEW(A) output-format.md · review-fidelity.md            [first]+ foundation-format.md
+PLAN             output-format.md · dependency-calc.md · example-3doc.md
+HANDOFF          output-format.md · foundation-format.md
+3-doc-gate       3-doc-gate.md                                    [first]+ first-cycle-review.md
+                 ← independent dispatch (the final backstop)
+G7 (the one human checkpoint)
+```
 
-## Phase 1 — EXPLORE (conditional; ground before deciding)
+## ORIENT — absorb · branch · ground
 
-**Harness detection (first).** Check whether a project harness exists: a `CLAUDE.md` carrying the
-dryforge structure **and** a `docs/` directory. If it exists, this is a **later cycle** — load
-`CLAUDE.md` and the relevant `docs/` files as project context, pre-resolve anything the harness
-already answers (don't re-ask it), and if this task may conflict with a harness decision, identify
-the conflict (trade-off? defect? intentional change?) and **ask the user** — domain conflicts don't
-self-resolve. If it does **not** exist, this is the **first cycle** — run Phases 1a/1b (the design
-system) before ELICIT. ready uses the harness only as reference; it does not know the `docs/`
-structure.
+Take the input raw, decide first-vs-delta, and read code/harness inline to lay the context later
+stages stand on. **No judgment or resolution here** — classification is DECOMPOSE's, conflict
+questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusion.
 
-If an existing codebase is in scope, read enough to ground every later decision: conventions, the
-public contract relevant to the goal, existing patterns the change must fit, and the test/verify
-harness. Read the project directly (Read, Bash, Grep) — no subagent dispatch. For greenfield
-(no code yet), this is minimal or skipped — the conception and dialogue carry it.
+1. **Check git.** Not a repo → offer `git init` + an initial commit. git not installed → stop and say
+   so. Greenfield or existing, git is required.
+2. **Absorb the input lightly — capture its *character* only.** Parse the argument tokens: resolve to
+   files where they are paths, read as prose otherwise, accept a mix. Empty / "use the skill" → ask
+   what they want to build or change first (that answer becomes the input; git from step 1 already
+   holds). Load what you read **raw — do not summarize** (it is the ore DECOMPOSE will deconstruct).
+   Capture the input's character: the rough conception, task type (greenfield / feature / refactor /
+   docs-config) and blast radius, and what the input *points at* (paths, entities, feature names — for
+   aiming grounding). **Stop at character (type / scale)** — assigning each piece to an axis is
+   DECOMPOSE's job, not ORIENT's.
+   - **Low-blast downshift.** A low-blast, no-new-contract goal (a one-line change, a docs/config edit,
+     a refactor with no new behavior) → keep the later dialogue light; don't over-interrogate intent
+     that isn't there. Still emit a **VALID** 3-doc: every section present, gates met, just thinner.
+   - **Large input.** "Load raw" means *preserve the original losslessly and keep it quotable*, not
+     paste a huge file into live context. For large/multi-file input, keep an **index and read
+     section-by-section** — don't kill signal by summarizing, but don't ingest it all at once either.
+3. **Branch on the cycle.** `.dryforge/status.json` present → **delta**: load the harness (`CLAUDE.md`
+   / `AGENTS.md` + `docs/`) as project context — *load only*; do not ask or resolve an input↔harness
+   conflict here (DECOMPOSE catches it, ELICIT asks it). Absent → **first cycle**: no harness; ELICIT
+   will force-load the foundation refs.
+   - **Safety guard (no marker but a harness on disk).** If `status.json` is absent but a dryforge
+     harness already exists on disk (dryforge-structured `CLAUDE.md` / `AGENTS.md` + populated
+     `docs/`), do **not** assume greenfield — **stop and ask** whether to treat it as existing context
+     (delta) or regenerate (first cycle). Don't guess (same as go's clobber guard).
+4. **Ground the code (inline, optional).** If code exists, read the *cheapest map first* — repo
+   instructions, file list, manifests, verify scripts, the directories the input points at. **Stop
+   broad reading the moment the completion bar is met** (inline ≠ "read everything" — suppress
+   flooding). Deep-read only the contract to preserve, one representative HOW pattern, and the verify
+   commands. Greenfield → minimal or skip. **No subagent.**
+5. **Find the verify command.** Discover the project's verify command. If none, surface that *absence*
+   as a decision (a custom check / named human-approval evidence / "no automated gate") — recorded in
+   SPEC, never left implicit.
 
-**Exploration budget.** Start with the cheapest project map: repo instructions, file list, manifests,
-test/verify scripts, and only the directories named by the goal. Stop broad reading as soon as Gate 1
-is satisfied. Deep-read only the files needed to pin the contract, one representative HOW pattern,
-and the verification commands. For low-blast-radius changes, a tiny 3-doc is better than a fully
-ornate one; spend effort on intent correctness, not archive-quality prose.
+**Completion bar:** input is loaded raw and the cycle is decided (+ delta: harness loaded); existing →
+you can state the goal's blast radius, the contract to honor, and the verify commands; greenfield →
+you have a grounded conception.
 
-Run autonomous enumeration here: the questions a careful reviewer would raise, with the ones the
-goal/code already settle **pre-resolved** (so ELICIT spends the user's attention only on what they
-uniquely hold). **Gate 1:** for an existing project you can state the goal's blast radius, the
-contract to honor, and the verify commands; for greenfield you have a grounded conception — else
-keep reading. If the project/goal has **no automated verify commands**, that absence is itself a
-decision to surface (a custom check, named human-approval evidence, or an explicit "no automated
-gate") — never left implicit, so go's gate is never undefined.
+## DECOMPOSE — deconstruct the input — `references/decompose.md`
 
-## Phase 1a — SCOPING (first cycle only) — `references/project-scoping.md`
+Force-load `references/decompose.md` and `references/grounds-gate.md`. Break the input's *content*
+into material ELICIT can use: classify each piece by axis (a fragment may file under several —
+classification is not partition; when unsure, duplicate); convert premature code to a behavioral
+contract **and keep the verbatim snippet alongside it where it carries a load-bearing edge** (keep-bias:
+a dropped nuance is unrecoverable, an over-kept block is cheap); preserve non-derivable forms verbatim;
+dedup wording but **treat repetition as an importance signal, not redundancy**; **flag — never resolve —
+every source difference**; write a **presence map** per axis with a non-scoring *form* marker (bare
+mention vs stated-with-rules) so ELICIT never reads "touched" as "covered". **Do not judge** (no
+conflict resolution, no gap scoring) — but "don't judge" is **not** a license to skim: ELICIT does
+**not** re-mine the raw INPUT, so signal you skip here is gone (same reward-hack ban as ELICIT). Meet
+the DECOMPOSE exit bar (`decompose.md`) before leaving. The output is challengeable material; the spec
+is written fresh from the dialogue, not from the input.
 
-**First cycle only.** Force-load `references/project-scoping.md`. Establish the project's character
-(identity, scale, hard constraints) and confirm it with the user — this sets the depth of everything
-downstream. Tell the user where you are and why (this is designing together, not an interrogation).
-Form a tentative read, update it through dialogue, then present the final read + depth direction and
-get confirmation before DESIGN. YAGNI gate: surface (don't silently cut) a design heavier than the
-project warrants.
+## ELICIT — realize the user's intent — `references/elicitation.md`
 
-## Phase 1b — DESIGN (first cycle only) — `references/project-design-domain.md`, `references/project-design-technical.md`
+Force-load `references/elicitation.md`, `references/gap-analysis.md`, `references/intent-review.md`,
+`references/grounds-gate.md`. **First cycle additionally:** `references/project-scoping.md`,
+`references/project-design-domain.md`, `references/project-design-technical.md`,
+`references/first-cycle-review.md`, `references/foundation-format.md`.
 
-**First cycle only.** Force-load the two design references in order. **Domain first**
-(`project-design-domain.md`): extract the domain model from the user — entities, rules, invariants,
-edge cases — to the depth/breadth floor (domain is always deep, even for a small project). **Then
-technical** (`project-design-technical.md`): present architecture / security / convention /
-operations decisions as options + trade-offs and let the user decide (no silent decision). At each
-phase transition, tell the user what's done and what's next.
+The heart. **One job: realize the user's intent** — understand the user deeply enough that the spec is
+*their* design. The discipline under every decision is **understand vs. guess** (`elicitation.md`): a
+load-bearing decision is either grounded in the user (they said it / it follows from what they said +
+the model you've built of their goal·values·constraints / they chose a presented option) → realize it;
+or it is a **stranger's guess** → forbidden, close it. **There is no "pick a reasonable default and
+move on" for a load-bearing decision** — that is the failure that detonates downstream (the agent
+deciding what the user would have decided differently).
 
-## Phase 2 — ELICIT (interactive dialogue — the heart)
+**Method by knowledge location** (two ways to *not-guess*, interleaved): **domain/behavior → EXTRACT**
+(the user knows; draw it out, never invent); **technical → PRESENT** (the agent knows; options +
+trade-offs + recommendation, grounded in the extracted domain; the user decides — never silent).
+Build and maintain a **model of the user** (goal / values / constraints / domain facts) and test each
+load-bearing decision against it: grounded → realize; model-silent → that *is* the gap, close it.
 
-**First cycle:** ELICIT runs *after* SCOPING+DESIGN — it elicits *this task's* intent on top of the
-confirmed project foundation, not the whole project again. **Later cycle:** ELICIT runs right after
-EXPLORE, using the harness as context.
+**Scope by cycle — first establishes the foundation, delta works within it; both EQUALLY rigorous
+(delta is not "lighter").**
+- **First cycle (no harness): a *forced* foundation design.** Run `project-scoping.md` (CALIBRATE:
+  character → depth), then the **domain extraction** (`project-design-domain.md`) and **technical presentation**
+  (`project-design-technical.md`). **Their floors are non-negotiable, not loop-optional:** the domain
+  **breadth guard** (can't close without "are there other entities/features/rules?"), the domain
+  **depth floor**, the technical **no-silent-decision** rule. These force understanding over guessing
+  while the foundation is laid — do not dilute them. Scope = project foundation + this task; produces
+  the Foundation 4 sections.
+- **Delta (harness exists):** do **not** re-run foundation design (read the floor from the harness;
+  don't re-ask what it answers) — but realize this task's load-bearing intent with the **full** "no
+  guess survives" discipline. Scope = this task; rigor = full.
 
-Full guidance: `references/elicitation.md`. In short: lead with a recommendation; ask **deeply**
-about functional intent (behavior, edge cases, invariants, scope); **default-and-surface** load-
-bearing technical decisions (state the trade-off, one beat, overridable — never silent); silently
-default the trivial. Don't ask what you already derived. **Gate 2:** transition gate — the user
-says enough (unless a material gap remains), or nothing is left for the user to decide.
-**Mandatory:** for greenfield (or when
-EXPLORE did not fix the stack), you must surface the load-bearing **technical shape** (persistence,
-interface/delivery form, anything the whole plan rests on) before SPEC — an un-surfaced technical
-shape is a material gap that blocks the gate. Stop via the transition gate (user says enough —
-unless a material gap remains — or nothing is left for the user to decide).
+**Account the decision surface — enumerate, don't wait to be told** (`elicitation.md`). Name the
+entities (a manifest), then walk four lenses over each entity and colliding pair to enumerate the
+load-bearing decisions the design is *obligated to answer*: **STRUCTURAL** (cardinality/composition/
+identity), **BEHAVIORAL** (lifecycle/concurrency/policy/edges — name the kind first), **TECHNICAL**
+(persistence/interface/consistency), **CONTRACT** (status·enum *sets*/uniqueness/output keys). Lenses
+are accelerators, not a fixed catalog. **Enumerate ≠ ask:** resolve each slot in order — user-model
+grounds it → realize (don't ask); tuning value inside a settled mechanism → default *marked tunable*
+(don't ask, D4); else **`assumed`** → ask (extract/present). So enumerate *exhaustively* but ask
+*minimally* (≤4 questions·options per structured prompt, lead with a recommendation, `grounds-gate.md`
+filters; never skip a load-bearing one; **if the structured tool fails, re-ask as plain text — never
+dead-end**). First cycle / unfixed stack: you MUST have **presented** the load-bearing technical shape
+(persistence, interface, **and the concurrency/consistency model when the domain has shared state**) —
+a stack pick alone does not settle it.
 
-## Phase 3 — SPEC (write the ground truth)
+**Exit bar (observable) — write the spec only when no `assumed` slot survives** (full bar in
+`elicitation.md`): the surface is accounted — every load-bearing slot is `grounded`, `deferred-tunable`,
+or asked-and-answered (a mechanism's *preference-values*, not just its yes/no, included); first-cycle
+foundation floors met; no material gap remains. A thin input *raises* the bar (ask more), never lowers it.
 
-Write `.dryforge/spec.md` — WHAT, not HOW. Restate the goal; include objective + motivation;
-**invariants / preserved contract** (the load-bearing section); the substantive behavior/rules;
-scope boundaries; and **explicit assumptions / decisions+rationale** for everything not code-
-derivable (the thinking-base — and the visible record that makes a missed item cheap to catch).
-The spec is the contract; keep premature implementation out. If EXPLORE found no automated verify
-commands, record the surfaced gate decision (custom check / named human-approval evidence / explicit
-"no automated gate") here as one of those decisions — so go's gate is never undefined. **Gate 3:** spec covers every
-elicited question; every invariant is concrete/checkable; rationale present for each non-derivable
-decision; no silent assumption (record it or ask).
-Keep the spec dense: every section earns its place by constraining implementation or review. Avoid
-repeating project facts that `go` can read again cheaply.
+## intent-completeness — independent guess-hunt before SPEC — `references/intent-completeness.md`
 
-## Phase 4 — REVIEW (intent-incompleteness probe @ spec, autonomous)
+Force-load `references/intent-completeness.md`. Before freezing the spec, dispatch a **fresh
+perspective that did not author the intent** (independent — but it **reads the chat session + the
+decision surface**; A=A distrusts *authoring*, not *seeing*) to **audit the surface**: (1) is each
+`grounded`/`deferred` disposition defensible from the dialogue, or rubber-stamped? (2) walk the lenses
+independently — is there an obligation-slot the producer **never enumerated** (e.g. an entity's
+cardinality settled silently)? It does **not** flag *tuning values* (executor inference, not guesses).
+Each finding is **relayed to the user and closed by extract/present** (not patched into a document);
+**bounded local re-walk** of only the touched neighborhood, re-check once, then escalate — no open
+loop. This catches guesses *while the user is still here to decide*, so the final 3-doc-gate finds
+little. (This and the 3-doc-gate are the only subagent dispatches.)
 
-Full guidance: `references/intent-review.md`. Probe the frozen spec for what the dialogue missed —
-an independent reader pointed at completeness, **risk-proportional** (aim at the assumptions /
-non-derivable decisions; depth scales with stakes). Split findings: internally-resolvable → fix in
-spec; **user-only intent-gap → reopen ELICIT and ask** (never auto-fix a guess). **Degrade mode:**
-no nested subagent → deliberately-separate self-adversarial pass. **Gate 5:** no blocking intent-
-gap remains (all fixed or user-answered). Only now build the plan.
+## SPEC + REVIEW(A) — write ground truth, verify fidelity — `references/output-format.md`
 
-**First cycle:** additionally force-load `references/first-cycle-review.md` and run it alongside the
-intent probe — it checks the spec + Foundation are a sufficient *project* foundation (domain
-depth/breadth, technical decisions closed, security project-specific, no vague modifiers). A
-foundation gap only the user can fill reopens the matching DESIGN phase (1a/1b); never auto-fill it.
+Force-load `references/output-format.md` and `references/review-fidelity.md` (+ first cycle:
+`references/foundation-format.md`).
 
-## Phase 5 — PLAN (decomposition for parallel execution)
+1. **Write `.dryforge/spec.md` — from the *validated intent*, not the input.** Dense; premature
+   implementation excluded. Contents (the `output-format.md` contract): objective + motivation /
+   invariants and preserved contract (load-bearing) / behavior rules (edges as explicit rules) / scope
+   boundaries / thinking-base for non-derivable decisions (decision + reason — judged by derivability;
+   never invent a reason) / API surface / required verification (if ORIENT found no verify command,
+   record that gate decision here).
+2. **First cycle — write the Foundation too, into `handoff.md`.** Write ELICIT's Foundation 4 sections
+   (identity / domain / technical / future) into `handoff.md`'s Foundation section **now** (the rest
+   of the handoff's governing parts wait for the plan and are filled at HANDOFF; the Foundation does
+   not depend on the plan). **No separate `.dryforge/foundation.md`.** Into the spec, lift only **this
+   task's WHAT** (the part of the domain this task actually implements); the project-wide context (the
+   rest of the domain, future scope) stays in the Foundation. (Written here so REVIEW(A) can verify a
+   *written* Foundation.)
+3. **REVIEW(A) — fidelity only, inline.** Check that what the session settled landed in the document
+   without evaporation or distortion (+ first cycle: the written Foundation). Internally resolvable →
+   fix the spec; a user-only intent-gap → reopen ELICIT for that gap only (the one mid-run user
+   question). Completeness is **not** checked here (`review-fidelity.md` — A=A; that is the
+   3-doc-gate's job). **Gate:** zero blocking fidelity gaps; no user-only intent-gap remains.
 
-Load `references/output-format.md` (the 3-doc contract) and `references/dependency-calc.md` (the
-Execution Graph) before authoring — write to the actual schema go parses, not from memory.
-Write `.dryforge/plan.md` from the frozen spec. Per task: a **behavioral contract** (goal, file
-targets, verification gate tied to the Phase-1 harness), the thinking-base where not code-derivable,
-and shared-write guidance (prose). Then compute the **Execution Graph** last
-(`references/dependency-calc.md`) — the only machine-binding part of the plan; go follows
-it and never re-judges. As part of authoring that graph, the producer derives each task's optional
-**RISK tier** (`risk: RISKY | MECHANICAL | NONE`, per `references/dependency-calc.md`), so the
-3-doc the user reviews carries it. **Scaffold is not a task.** `go` performs project initialization
-(manifests, dependencies, directory layout, build config) inline before dispatching implementers —
-do not create a scaffold task in the plan. Keep the produce=plan / run=do boundary. **Gate 6:** every spec
-requirement maps to ≥1 task (forward trace); every task grounds in a spec requirement (no orphan);
-the verification gate is named.
-Prefer fewer, larger tasks when splitting would only add merge/review overhead and no real
-parallelism. Prefer more tasks only when targets, dependencies, and verification evidence are truly
-independent. The graph should maximize useful concurrency, not task count.
+## PLAN — decomposition for parallel execution — `references/dependency-calc.md`
 
-## Phase 6 — HANDOFF (governing doc) + output
+Force-load `references/output-format.md`, `references/dependency-calc.md`, `references/example-3doc.md`.
+Write `.dryforge/plan.md` from the frozen spec. Per task: a **behavioral contract** (goal, work
+targets [files | state | external], verification gate), thinking-base where not code-derivable,
+shared-write guidance (prose). Compute the **Execution Graph** last — a **fenced `yaml` block** with
+`depends` (the only encoded judgment), `regen_barriers`, and the optional per-task `risk` using
+**exactly the enum `RISKY | MECHANICAL | NONE`** (never an ad-hoc value like "high"/"low"). go follows
+it and never re-judges. **Scaffold is
+not a task.** (Any task-order/dependency graph the input carried was discarded in DECOMPOSE; PLAN
+always computes the graph fresh from the spec — the same behavior as the old ready.) **G6:** every
+spec requirement maps to ≥1 task (forward); every task grounds in a spec requirement (no orphan); the
+Execution Graph parses.
 
-Write `.dryforge/handoff.md` — the governing doc (3-doc contract: `references/output-format.md`):
-document roles + conflict resolution, file locations (project-root-relative), hard gates, and the
-**intentionality captured live in dialogue** that is not in spec/plan. Because produce captures
-intent directly (not reverse-engineered from foreign docs), this handoff should be richer.
+## HANDOFF — governing doc + assemble — `references/output-format.md`
 
-**First cycle:** force-load `references/foundation-format.md` and include a **Project Foundation**
-section in the handoff — the project-wide foundation from SCOPING/DESIGN (identity; the full domain
-model with `[implementation target]` / `[project context]` labels; the confirmed technical
-decisions; future scope), clearly labeled as **non-executable project context**. `go` reads it as
-context while implementing this task's spec, and as the source for the harness it creates at the end.
-Omit the Foundation in later cycles (the harness has taken over the project-context role).
+Force-load `references/output-format.md` and `references/foundation-format.md`.
 
-Write the three docs to `.dryforge/` and notify. **Do not touch `.gitignore`, and do not commit
-anything** — leave `.dryforge/` as plain untracked files. `go` owns the git mechanics: when it
-starts, it ignores `.dryforge/` on its own feature branch (and untracks a `.dryforge/` left tracked
-by a prior run), so the project's `main` is never modified, and never made *ahead of its remote*,
-by produce. Centralizing all git in the run side is what keeps this handoff seam clean.
+1. **Write `.dryforge/handoff.md`** — Document Roles (spec = behavior / plan = order·targets) +
+   conflict resolution + file locations (project-root-relative) + hard gates (non-negotiable
+   constraints not derivable from code) + intentionality not captured in spec/plan. (Because produce
+   captures intent directly, this handoff is richer.)
+2. **First cycle — the Foundation is already written (at SPEC); here, fill the governing parts around
+   it.** HANDOFF does **not** originate the Foundation — it *assembles*. Keep the Foundation clearly
+   labeled "Non-executable project context," separated from the governing parts, so `go` never mistakes
+   a hard gate for project context. Delta: there is no Foundation.
+3. **Write the 3-doc to `.dryforge/` — do not touch git.** Do not touch `.gitignore` and commit
+   nothing (`go` owns git; produce=documents / run=git). If an input file is an untracked file *inside*
+   the repo, advise the user to move it out or add it to `.gitignore` (produce does not delete the
+   user's input itself).
 
-## Final gate (the one human checkpoint — G7)
+**Completion bar:** handoff written (+ first cycle: Foundation assembled), the three files in
+`.dryforge/`, git untouched.
 
-Present the 3-doc to the user: *"Review this and confirm. If it's right, proceed; if not, tell me
-and I'll fix."* This is not a violation of one-command autonomy — autonomy is executing an
-**approved** spec, not setting intent. One gate, at the end. (The only mid-run question is the
-Phase-4 exception: a genuine user-only intent-gap.)
+## 3-doc-gate — the final backstop — `references/3-doc-gate.md`
+
+Force-load `references/3-doc-gate.md` (+ first cycle: `references/first-cycle-review.md`). Dispatch a
+fresh subagent that has **not** seen the dialogue; give it the 3-doc only (it may read the code),
+read-only, returning a **structured list** (no raw dump). **A single holistic review** — executability
+(aim explicitly at the output/interface contract), plus, **first cycle only, a foundation-sufficiency
+*lens*** within the same review (`first-cycle-review.md` rubric on the written Foundation — not a
+second dispatch). It is the *final* backstop and should find little, because intent-completeness
+already routed the guesses to the user. Empty → G7. A blocker → the orchestrator relays it to the user,
+fixes only the stage it belongs to, then re-runs the gate; a surviving blocker → escalate. (The machine
+0-signal gates — coverage gap, orphan, graph parse — are cheap; keep them in place.)
+
+## G7 — the one human checkpoint
+
+Present the completed, verified 3-doc to the user: *"Review this and confirm. If it's right, proceed;
+if not, tell me and I'll fix."* On approval, tell the user to **invoke the `go` skill in this
+session** to execute. Autonomy is executing an **approved** spec, not setting intent — one gate, at
+the end (the only mid-run exception is the REVIEW(A) reopen). Produce → run is one session — the design
+context carries into go — but **the 3-doc, not the dialogue, is the authority** (it is archived and
+read by later cycles, so it must be self-sufficient).
 
 ## Completion gate (avoid self-judgment A=A)
 
-Done only when BOTH hold:
-- **Deterministic 0-signals:** coverage gaps = 0, orphan tasks = 0, Execution Graph parses.
-- **Intent-incompleteness probe (Phase 4) clear:** no residual blocking intent-gap. Residual →
-  escalate to the user (do not self-fill).
+The **target you work toward** is the ELICIT exit bar (no guess survives on a load-bearing decision) (above) + the deterministic 0-signals —
+*that* is what "done" means. The 3-doc-gate is a separate **independent audit you should expect to
+pass with nothing found**; it is not the bar you aim at, and you never do shallow work expecting it to
+catch the rest (reward-hacking — Core principles).
 
-On approval, notify the user clearly:
-- What was produced (3-doc at `.dryforge/`).
-- **How to execute:** "invoke the `go` skill **in this session** to execute." Produce → run is a
-  single session — the design context carries straight into execution (and into the harness `go`
-  builds at the end).
-- **The 3-doc is the authority.** `go` executes against the 3-doc (kept self-sufficient because it is
-  archived for later cycles); the live design context aids `go`'s judgment but the 3-doc, not the
-  dialogue, is the contract.
+Done only when ALL hold:
+- **ELICIT completeness bar met:** every load-bearing dimension the domain implies was surfaced to the
+  user and settled (or explicitly marked N/A with a reason) — recorded in the spec, not left for the
+  gate to discover.
+- **Deterministic 0-signals:** coverage gaps = 0, orphan tasks = 0, Execution Graph parses.
+- **3-doc-gate clear (insurance):** the independent fresh subagent returned no blocking item. A finding
+  here is an **ELICIT failure that escaped**, not a normal step — fix the stage it belongs to and treat
+  it as a signal you closed the dialogue too early; residual → escalate to the user, never self-fill.

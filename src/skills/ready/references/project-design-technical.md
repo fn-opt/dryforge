@@ -2,7 +2,10 @@
 
 Establish the project's **technical decisions** with the user. This is the **present** mode (knowledge
 lives with *you*; the user speaks in generalities — translate them into concrete options +
-trade-offs, the user decides). Run after domain design; depth follows the SCOPING character.
+trade-offs, the user decides). The technical floor below is what the ELICIT loop must close on the
+technical axis; depth follows the CALIBRATE character. Order is gap-driven, not a fixed phase — the
+technical decisions interleave with domain in the loop and lean on the domain the loop has drawn out
+(a domain fact triggers a technical question and vice versa, `elicitation.md`).
 
 It is the opposite of domain design. Domain *draws out* what the user knows; technical *presents*
 what the user doesn't, as options the user chooses among. The user says a generality ("I want it to
@@ -18,7 +21,7 @@ and lays the floor; which options to present, in what order, is your judgment.
 - **Silent decision (the core one).** Never settle a technical direction without user approval.
   Translate the generality into concrete options with trade-offs and let the user pick — don't quietly
   choose the default and move on.
-- **Over-engineering.** When a technical choice is heavier than the SCOPING character warrants, detect
+- **Over-engineering.** When a technical choice is heavier than the CALIBRATE character warrants, detect
   it and surface it to the user with your reasoning. Don't shrink it unilaterally — the user decides.
 - **Stack-locking.** Don't presuppose a specific technology. When presenting options, honor the
   stack-agnostic principle: offer the *kinds* of approach and their trade-offs, not a single assumed
@@ -30,7 +33,11 @@ and lays the floor; which options to present, in what order, is your judgment.
   arbitrarily. Establish at least the minimal project standards (code conventions, test strategy,
   module boundaries) with the user.
 
-## What to cover (proportional to SCOPING depth)
+## What to cover (proportional to CALIBRATE depth)
+
+The areas a typical project's technical floor touches — **common, not a fixed catalog.** A given project
+may add others (data model / migration, observability, …) or legitimately have almost nothing in one.
+Cover what *this* project's character implies, not all four by rote.
 
 - **Architecture** — components, how they communicate, data flow.
 - **Security model** — auth approach, authorization model, audit scope (this project's own policy,

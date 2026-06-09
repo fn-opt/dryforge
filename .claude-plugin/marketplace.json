@@ -5,7 +5,7 @@
   "plugins": [
     {
       "name": "dryforge",
-      "description": "Intent-to-implementation: Ready or Set, then Go.",
+      "description": "Intent-to-implementation: Ready, then Go.",
       "author": { "name": "fn-opt" },
       "source": "./claude",
       "homepage": "https://github.com/fn-opt/dryforge"

@@ -6,9 +6,9 @@
 
 # dryforge
 
-### Describe it once. Ship _exactly_ that.
+### You bring the what. It ships _what you meant._
 
-Your agent works like a senior developer — an all-in-one harness that keeps every step honest, from project design to running code.
+Your agent works like a senior developer — an **all-in-one harness** that keeps every step honest, from project design to running code.
 
 [Website](https://dryforge.vercel.app) · [한국어](https://github.com/fn-opt/dryforge/blob/main/README_KO.md)
 
@@ -32,7 +32,7 @@ codex plugin add dryforge@dryforge
 
 ---
 
-## It doesn't cage. It points.
+## Not a cage. A compass.
 
 Same model, better results. Instead of micromanaging the agent, dryforge lays down a solid basis for judgment and blocks only the ways things go off the rails — pulling the model's full power through. It sets a **floor, not a ceiling**: a better model just gets you better output.
 
@@ -77,52 +77,63 @@ your-project/
 
 ## Same prompt, different code
 
-Why does that shared context matter so much? Ask for the same thing in two sessions and you get two different answers. Not because the model is weak — because it's *strong*. With nothing to anchor to, a capable model re-reasons everything from scratch every time. The smarter the model, the wider the spread. People think differently today than yesterday, too.
+Ask for the same thing in two sessions and you get two different answers — not because the model is weak, because it's *strong*. With nothing to anchor to, a capable model re-reasons everything from scratch, and the smarter it is, the wider it roams. (You think differently today than yesterday, too.)
+
+And it's not about style — it's the *decisions* that quietly disagree:
 
 <table>
 <tr>
-<td><sub>session 1</sub>
+<td><sub>session 1 — money as integer cents</sub>
 
 ```js
-function sortUsers(list) {
-  return list.sort((a, b) =>
-    a.name.localeCompare(b.name))
-}
+const price = 1099   // $10.99
+total += price       // always exact
 ```
 </td>
-<td><sub>session 2</sub>
+<td><sub>session 2 — money as floating dollars</sub>
 
 ```js
-const sorted = [...users].sort(
-  (a, b) => a.name > b.name ? 1 : -1
-)
+const price = 10.99
+total += price       // 0.1 + 0.2 = 0.30000000000000004
 ```
 </td>
 </tr>
 </table>
 
-The answer is simple — hand the strong model the **same context, every time**. That's exactly what the harness is, and that's dryforge.
+One module rounds one way, the next rounds another, and the books stop balancing. Multiply that across auth, IDs, error handling — the codebase quietly fights itself.
+
+The fix is simple: hand the strong model the **same context, every time** — the decisions already made, and *why*. That's the harness. That's dryforge.
+
+---
+
+## `/ready` — half an idea is enough
+
+Most tools assume you already know *exactly* what to build. **`/ready`** assumes the opposite. Bring a one-line hunch, a bloated spec another tool spat out, scattered notes — any of it, or all at once — and `/ready` takes it as *material* and does what a senior developer does: it **asks back**. It draws out the decisions you never pinned down — even the ones you didn't know you were making — until nothing's left ambiguous. What comes out isn't transcribed requirements; it's the design you *actually meant*, ready to build.
+
+One front door. It takes whatever you bring — and turns it into exactly what you meant.
 
 ---
 
 ## However you start, `go` finishes
 
-Pick what fits. **`ready`** and **`set`** just start differently — both lead into **`go`**. Already have a project? **`migration`** brings it in.
+Two ways in — and `/go` finishes both.
 
 ```
-  ready ─┐
-         ├──▶  go  ──▶  working software + the project harness
-  set  ──┘
+  /ready <INPUT>  ──▶  /go!      ──▶  working software + the project harness
 
-  migration  ──▶  an existing project, brought into dryforge
+  # <INPUT> — a file, a line, anything: drop it in and it figures the rest out
+
+
+  Already have running code?
+  /migration  grafts dryforge onto it  ──▶  your project finally has a system
+              (one-time on-ramp; afterwards /ready → /go)
 ```
 
 | | Command | What it does |
 |---|---|---|
-| **You have just an idea** | `/dryforge:ready` | A senior-level brainstorm asks until nothing is ambiguous and turns a vague idea into a complete design — recommending a stack if you have none, scaled to your project. |
-| **You have something written** | `/dryforge:set` | Notes, or docs from any other tool — `set` reads them, points out what's missing, asks, and shapes them into something executable. |
-| **→ then both converge on** | `/dryforge:go` | Builds from the plan with zero waste: many tasks at once in a pre-computed order, the risky parts verified more thoroughly. → working software **+** the project harness. |
-| **You already built it** | `/dryforge:migration` | Reads your existing code and generates the project harness automatically — surfacing even the intent you never wrote down. No starting over; straight into dryforge. |
+| **An idea, notes — any input** | `/dryforge:ready` | Any input becomes a complete, executable design — read as *material*, questioned until nothing's ambiguous, with a stack recommended if you have none. |
+| **→ leads into** | `/dryforge:go` | Builds from the plan with zero waste: many tasks at once in a pre-computed order, the risky parts verified more thoroughly. → working software **+** the project harness. |
+| **Code that already runs** | `/dryforge:migration` | Audits your code — surfacing real problems and undocumented intent — as it grafts the harness on. One-time; then `/ready` → `/go`. |
 
 ---
 
@@ -130,4 +141,4 @@ Pick what fits. **`ready`** and **`set`** just start differently — both lead i
 
 MIT
 
-<div align="center"><sub><a href="#top">↑ back to top</a> · ready / set / go</sub></div>
+<div align="center"><sub><a href="#top">↑ back to top</a> · ready / go</sub></div>

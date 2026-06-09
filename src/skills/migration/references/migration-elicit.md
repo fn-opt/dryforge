@@ -8,6 +8,13 @@ principle (extract domain, present technical).
 **Floor, not ceiling.** This is not a script. The guardrails and the depth floor below are the
 floor; how you run the conversation is yours. Never hardcode questions or stack choices.
 
+**Calibrate to the project's character first.** Right-size the conversation to what the project *is* —
+a 200-line CLI and a 200k-line multi-domain platform do not earn the same depth. Read scale, domain
+density, and surface area from SCAN, then spend deep extraction where the domain is core and a light
+confirm where it's peripheral (§8 right-sized, §12 effort-proportional). Don't run uniform full-depth
+ceremony on a trivial repo, nor a light pass on a domain-heavy one. (State the read in prose, not a
+grade — a grade becomes a ceiling.)
+
 ## The core frame — self-infer first, ask deeply only where being wrong is dangerous
 
 You have just read the code (SCAN). Use it. Don't ask what the code already answers; do confirm what
@@ -26,18 +33,36 @@ Code can show *what* the auth check does but not *whether it is the whole policy
 field but not *which transitions are forbidden by the business*. Technical WHY and conventions, by
 contrast, need only a light confirm when the code answers them.
 
-## SCAN → ELICIT — each discovered element generates a question
+**A thin / undocumented codebase RAISES the bar — it does not lower it.** Sparse code is migration's
+most common *and most dangerous* input: least to infer from, most that lives only with the user. "The
+code didn't tell me much" is never a license for a thin harness — it means **ask more, mine the user
+harder.** A hollow harness from a sparse codebase is the exact failure migration exists to prevent.
 
-Walk the SCAN map and turn each finding into a question:
+**Ask grounded questions, not spray.** A confident question can state its **site** (the exact module /
+rule / policy), **why the code doesn't already answer it**, and the **consequence** of getting it
+wrong. Can't ground all three? Don't press it as blocking — vague "is something missing?" spray
+fatigues the user and erodes trust.
 
-- **A discovered entity/module** → "what is its domain purpose, and what rules govern it?"
-- **A discovered pattern** → "is this an intentional convention, or incidental?"
-- **Discovered security code** → "is this the whole policy, or only part of it?"
-- **A discovered architecture** → "why this structure? what did it rule out?"
-- **A discovered gap** (something a domain like this usually has, absent here) → "is the absence
-  intentional, or just not-yet-implemented?"
+## The SCAN map is a ledger — every item must close (observable coverage)
 
-This is how breadth is guaranteed: the map drives the questions, so no major area goes unasked.
+SCAN produces a **manifest**: every entity/module, pattern, security surface, external dependency, and
+*gap* (something a domain like this usually has, absent here). Treat it as a **ledger** — each item
+must end ELICIT in exactly one **recorded** disposition, so completeness is a *scan over the ledger*
+(evidence), not a "did I cover everything?" feeling (§6 evidence-not-assertion):
+- **confirmed** — its domain purpose / governing rule is user-confirmed.
+- **asked-answered** — surfaced to the user and resolved.
+- **N/A — reason** — genuinely not load-bearing here, with the reason recorded.
+
+Drive a question from each open item (translate to the user's language, below):
+- **entity/module** → purpose + governing rules (structural: what it owns/relates to; behavioral:
+  lifecycle, who may act, what's forbidden).
+- **pattern** → intentional convention, or incidental?
+- **security surface** → is this the *whole* policy, or only part?
+- **architecture** → why this structure? what did it rule out?
+- **gap** → is the absence intentional, or not-yet-implemented?
+
+No item is silently dropped — an un-dispositioned row is an open question, not a pass. (This is
+migration's form of `ready`'s decision-surface accounting: the SCAN manifest *is* the surface.)
 
 ## Translate code into the user's language (the user may be non-technical)
 
@@ -60,19 +85,18 @@ Extract domain knowledge; never invent it. If the user can't answer and the code
 record it as an open question for the user — a fabricated domain rule sends every later agent
 confidently wrong.
 
-## Completion bar (floor)
+## Completion bar (observable — a scan over the ledger)
 
-ELICIT is done only when:
-- **Every module/component from SCAN has its domain purpose confirmed** — not inferred, confirmed.
-- **The business model and the policy decisions are settled by user confirmation, not inference.**
-- **No "I don't understand why this is here" remains in a dangerous area** (business logic, domain
-  invariants, security).
-- **For every identified piece of business logic, you have explicitly asked "are there rules not
-  visible in the code?"** — the code shows what is implemented; this question triggers what is
-  missing from it. (Code shows the *implemented* rules; the unimplemented-but-intended ones live only
-  with the user.)
+ELICIT is done only when **every SCAN-ledger item is dispositioned** (confirmed / asked-answered /
+N/A-with-reason) — a *scan over the ledger*, not a feeling. In particular:
+- **Business model & policy decisions: user-confirmed, never inferred** — a false belief here breaks
+  the whole project (the load-bearing rule above).
+- **No "I don't understand why this is here" survives in a dangerous area** (business logic, domain
+  invariants, security) — such an item stays `open`, never silently closed.
+- **For every business-logic piece, the "are there rules not visible in the code?" question was asked**
+  — code shows the *implemented* rules; the unimplemented-but-intended ones live only with the user.
 
-The ceiling is open — how to lead the conversation is your judgment.
+The ceiling is open — how you lead the conversation is yours; *what must be dispositioned* is not.
 
 ## Universality guard
 

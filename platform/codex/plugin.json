@@ -1,7 +1,7 @@
 {
   "name": "dryforge",
-  "version": "1.0.2",
-  "description": "Intent-to-implementation: elicit or refine a spec and plan grounded in real project code, then orchestrate dependency-aware parallel execution with right-sized review.",
+  "version": "1.1.0",
+  "description": "Intent-to-implementation: from a goal, design docs, notes, or a mix, elicit and validate intent into a grounded 3-doc, then orchestrate dependency-aware parallel execution with right-sized review.",
   "author": {
     "name": "fn-opt"
   },
@@ -24,8 +24,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "dryforge",
-    "shortDescription": "Plan and execute implementation work from grounded specs.",
-    "longDescription": "dryforge turns a goal or existing spec and plan into a grounded 3-doc, then helps Codex execute it with dependency-aware waves, git isolation where needed, and right-sized verification.",
+    "shortDescription": "Turn any input into a grounded 3-doc, then execute it.",
+    "longDescription": "dryforge turns any input — a goal, design docs, or notes — into a grounded 3-doc, then helps Codex execute it with dependency-aware waves, git isolation where needed, and right-sized verification.",
     "developerName": "fn-opt",
     "category": "Productivity",
     "capabilities": [
@@ -33,8 +33,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use dryforge ready to plan this goal.",
-      "Use dryforge set with my spec and plan.",
+      "Use dryforge ready to turn this goal, doc, or notes into a 3-doc.",
       "Use dryforge go to execute the 3-doc."
     ],
     "brandColor": "#2563EB"

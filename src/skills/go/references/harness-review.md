@@ -5,7 +5,7 @@ The verification criteria for a project harness. Used by **migration's REVIEW ph
 The spec being verified against is `harness-format.md`.
 
 This is an **adversarial pass**: the reviewer's job is to find holes, not to bless the work
-(self-judgment is the weak move — see core-philosophy §6). The four dimensions below are *what to
+(self-judgment is the weak move — see design-principles §6). The four dimensions below are *what to
 check*, applied with judgment — not a box-ticking checklist that earns a pass by being walked.
 
 ## Dimension 1 — content (does each file substantively meet its spec?)
@@ -24,8 +24,9 @@ cross-cutting quality bar:
   outcome), edge cases concrete (no "handled appropriately").
 - **Language** — the harness is written natively in the **language the user communicates in**
   (language-agnostic; the specific language is discovered, not assumed). A harness that doesn't match
-  the user's language is a defect. (migration self-reviews knowing it; go's reviewer is told the
-  user's language by the orchestrator at dispatch.)
+  the user's language is a defect. (The reviewer is told the user's language by the orchestrator at
+  dispatch — in both migration and go the finished work is verified by an independent dispatched
+  reviewer, never self-reviewed.)
 - **Harness describes the project only (blocking)** — flag any file that describes itself (its state,
   thinness, lifecycle, or *its own purpose / how to read it* — e.g. "read this instead of the code"),
   its origin (that it was generated / migrated / is a first-cycle artifact; status.md listing the

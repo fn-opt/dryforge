@@ -43,6 +43,6 @@ If the **spec** is ambiguous or self-conflicting (not just the implementation), 
 pick an interpretation. The orchestrator escalates to the user; spec is ground truth and only
 the user changes it.
 
-You are in a fresh session with no live user conversation — do NOT ask the user directly. Return
-NEEDS_CONTEXT or BLOCKED (implementer) / escalate via your structured return; the orchestrator
-relays escalations to the user.
+You are in a fresh session with no live user conversation — do NOT ask the user directly. Escalate
+via your structured return (`status: needs-fix`, naming the spec problem); the orchestrator relays
+escalations to the user.

@@ -42,8 +42,8 @@ or external-state initialization rather than artifact consumption? If so, declar
 `depends` even with no file consumed. And for **external shared state** — tasks writing a DB, a
 registry, a queue, or remote config with no local file collision — declare a serialization point (a
 writer task the others `depends` on) when the parallel writes are **not** idempotent/commutative;
-otherwise record the safe-parallel assumption in the handoff. ready-EXPLORE / set-GATHER surface
-these project-specific constraints.
+otherwise record the safe-parallel assumption in the handoff. ORIENT surfaces these project-specific
+constraints.
 
 ## Task risk tier (optional)
 

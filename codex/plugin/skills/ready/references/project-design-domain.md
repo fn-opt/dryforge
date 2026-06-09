@@ -3,7 +3,10 @@
 Extract the project's **domain model** from the user. This is the **extraction** mode (knowledge
 lives with the user; you must draw it out — never invent it), and the thickest first-cycle
 reference, because domain knowledge is the hardest to extract systematically and the most damaging
-to get wrong. Run after SCOPING confirms the project's character; depth follows that character.
+to get wrong. The domain floor below is what the ELICIT loop must close on the domain axis once
+CALIBRATE has confirmed the project's character; depth follows that character. Order is gap-driven,
+not a fixed phase after technical — but domain naturally leads early in a first cycle, since the
+technical decisions depend on it (`elicitation.md`).
 
 **Floor, not ceiling.** You already know how to hold a domain conversation. This file does **not**
 script it — it blocks the failure modes you fall into and lays the depth/breadth floor. The ceiling
@@ -12,7 +15,7 @@ is open: how you lead, in what order, is your judgment.
 ## Asymmetric depth — but domain is always deep
 
 Spend depth where the domain is core; go light on the peripheral (don't fatigue the user). **But:**
-even when SCOPING judged the project "small," do **not** compromise the *accuracy* of a domain rule.
+even when CALIBRATE judged the project "small," do **not** compromise the *accuracy* of a domain rule.
 A small project has *fewer* rules, not *shallower* ones — each rule still meets the depth floor below.
 
 ## Failure modes and guardrails
@@ -61,9 +64,9 @@ concept in isolation will miss them.
 A domain model captured at the depth/breadth floor above: entities and their relationships, state
 transitions (possible and forbidden), calculation logic (input → processing → output), explicit
 edge-case dispositions, and domain-term definitions. This is recorded in the handoff's Project
-Foundation (`foundation-format.md`), marking which entities are *this task's* implementation target
-vs. project-wide context — `go` implements only the target and uses the rest as design context, and
-later turns the model into `business-rules.md`.
+Foundation (`foundation-format.md`) as the **whole project's** domain — non-executable context. *This
+task's* WHAT lives in `spec.md` (what `go` implements); the Foundation is read as context (no
+per-entity target/context tags). `go` later turns the model into `business-rules.md`.
 
 ## Universality guard
 

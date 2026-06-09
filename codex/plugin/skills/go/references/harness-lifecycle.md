@@ -39,9 +39,11 @@ reflects the *intended* project, not just the code as written.
 Sources, in priority: the handoff's **Project Foundation** (`foundation-format.md`) → spec (design
 intent) → code (implementation fact). The Foundation's richness sets the harness's richness.
 
-- **No Foundation (the `set` entry).** When the producer was `set`, there is no Foundation — source
-  the harness from **spec + code + handoff** instead. The result is thinner but valid. Do not invent a
-  Foundation; work from what exists.
+- **Foundation is a first-cycle invariant — fail-fast if absent.** `ready` always writes the
+  Foundation in a first cycle (`foundation-format.md`, "First-cycle precondition"). So a first-cycle
+  handoff with **no Foundation section** is a **precondition violation, not a degrade case** — do
+  **not** guess a Foundation from spec + code. **Stop and ask the user to regenerate the 3-doc via
+  `ready`** (escalate-don't-guess). This is a one-line precondition check, not a fallback mode.
 
 Generate to `harness-format.md`:
 1. If a CLAUDE.md exists, back it up to `.dryforge/backup/`, review it critically, propose the

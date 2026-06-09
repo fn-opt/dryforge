@@ -4,9 +4,15 @@ The format contract for the **Project Foundation** section of the handoff: the a
 `ready` writes it, and the reading rules when `go` consumes it. Used **only in the first cycle** (no
 harness exists yet). Shared byte-identical between `ready` and `go`.
 
+**When it is written.** `ready` writes the Foundation into `handoff.md`'s Foundation section **at the
+SPEC step — together with `spec.md`, not deferred to HANDOFF** — so the inline fidelity review can
+verify a *written* Foundation (the rest of the handoff's governing parts still wait for the plan and
+are filled at HANDOFF). In a first cycle the Foundation is **always produced**; `go` relies on that as
+an invariant (see "First-cycle precondition" below).
+
 ## Purpose
 
-The first cycle's SCOPING/DESIGN produces project-wide foundation knowledge that does *not* belong in
+The first cycle's CALIBRATE/DESIGN produces project-wide foundation knowledge that does *not* belong in
 spec.md. spec.md carries only **this task's** execution contract; the **project-wide** foundation —
 the full domain model, architecture decisions, security model, conventions, future scope — goes in
 the handoff's Project Foundation. This split keeps `go` from over-implementing (it executes the
@@ -19,11 +25,13 @@ sections after harness files invites box-filling (reward-hacking) when `go` late
 keep the Foundation about the *project*, and let `go` map it to files.
 
 - **Section 1 — Project identity.** What, for whom, at what scale, under what constraints (the
-  SCOPING result).
+  CALIBRATE result).
 - **Section 2 — Domain model.** Entities, relationships, state transitions, rules, invariants, edge
-  cases (the domain-design result). **Mark each entity as `[implementation target]` or
-  `[project context]`** — `go` implements only the targets and uses the rest as design context. The
-  thickest section.
+  cases (the domain-design result) — the **whole project's** domain, as context. The thickest section.
+  (Do **not** label individual entities `[implementation target]` / `[project context]` — those
+  per-entity tags are clutter, and the distinction is already carried where it belongs: `spec.md` holds
+  *this task's WHAT* (what `go` implements), and the Foundation as a whole is non-executable context.
+  `go` builds the spec, reads the Foundation as context — no per-entity tag needed.)
 - **Section 3 — Technical decisions.** Architecture, security model, conventions, operations (the
   technical-design result). **Only decisions the user confirmed.**
 - **Section 4 — Future scope.** What is planned for the project but out of this task's scope. `go`
@@ -54,13 +62,15 @@ Created in the first cycle only. After `go` creates the harness, the 3-doc (hand
 its Foundation) is archived to `.dryforge/NNN/`. From the next cycle on, the harness takes over the
 project-context role, so no Foundation is written.
 
-## When absent (the `set` entry)
+## First-cycle precondition (Foundation is always present — no degrade)
 
-The Foundation is a **first-cycle `ready` artifact, not a hard requirement.** `set` (which has no
-SCOPING/DESIGN dialogue) does not write one. When `go` runs a first cycle from a `set`-produced
-3-doc, it finds no Foundation and **degrades gracefully** — sourcing the harness from spec + code +
-handoff. The result is thinner but valid; this thinness is exactly why `set` routes
-project-design-thin inputs to `ready`.
+The Foundation is a **required first-cycle artifact**, not optional: `ready` always produces it
+through its first-cycle ELICIT loop. So `go` treats its presence as an **invariant**, not something to
+work around. If `go` runs a first cycle (no `status.json`) and the handoff carries **no Foundation
+section**, that is a **precondition violation, not a degrade path** — `go` does **not** guess a
+Foundation from spec + code. It **stops and asks the user to regenerate the 3-doc via `ready`**
+(escalate-don't-guess). (This is a fail-fast check, not a fallback mode — the operational rule lives
+in `harness-lifecycle.md`.)
 
 ## Content quality
 

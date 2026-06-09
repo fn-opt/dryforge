@@ -1,77 +1,61 @@
-# intent-review.md — Phase 4 REVIEW (intent-incompleteness probe @ spec)
+# intent-review.md — the completeness lenses (ELICIT's risk-proportional press)
 
-Before any plan is built, the frozen spec is probed for **what the dialogue missed**. The final
-judge of "did we elicit enough?" is an agent, and agents (like people) cannot enumerate their own
-unknown unknowns — so self-assessment ("am I done?") is the weak move. Replace it with an
-*adversarial* probe: an independent reader whose job is to **find the holes**, not to bless the
-work. This is the same independent-review mechanism that earns the producer its depth, pointed
-specifically at intent-completeness.
+The lenses ELICIT applies while generating what to understand to press into **what the user didn't say**.
+Off-the-shelf plan tools only tidy what the user *said*; the hard problems live in the unsaid. These
+lenses are how ELICIT mines it — the **risk-proportional press on the high-stakes slots the
+decision-surface accounting enumerates** (`elicitation.md`), not an optional flourish: every
+load-bearing slot must pass under them before ELICIT may close. What scales with risk is the *depth/force* per item (a trivial goal gets
+a light pass; a high-blast goal gets several diverse lenses pressed hard) — **not** whether the sweep
+runs. This is the generative completeness work, done *during* dialogue where the user can still answer;
+it is **not** a thing to defer to the gate (deferring it is the reward-hack named in `elicitation.md`).
 
-This runs at **spec freeze, before PLAN** — so a wrong spec is caught before plan work is wasted —
-and it is **autonomous** (it does not add a human round; the human round is the single gate at the
-end, after the 3-doc).
+(The **independent** completeness audits are `intent-completeness.md` — auditing the decision surface
+before SPEC — and the `3-doc-gate` on the finished artifact; the session→document fidelity check is
+REVIEW(A)'s. This file is the generative lenses ELICIT owns.)
 
-## Risk-proportional aim (G1) — do not blanket-audit
+**Floor, not ceiling.** The lenses below are a floor to provoke the press, not a fixed checklist; let
+what is actually at risk in *this* intent decide where to push.
 
-Auditing the whole spec inflates cost for little gain. Aim the probe where the risk lives:
+## Risk-proportional aim — do not blanket-audit
 
-- **Probe the assumptions and the non-derivable decisions** — the items Phase 1 tagged as
-  *assumption* or *decision+reason* (things the code/goal did not settle). Code-derived,
-  already-grounded content is low risk — skip it.
-- **Check the load-bearing technical shape was surfaced.** For a greenfield spec (or any spec the
-  code did not pin), confirm the persistence approach, interface/delivery form, and any plan-
-  defining technical choice were actually surfaced and settled. An un-surfaced technical shape is an
-  intent-gap (USER) — reopen ELICIT. (Functional completeness is easy to over-focus on while the
-  whole stack goes unstated; this is the guard against that.)
-- **Probe the output / interface contract for completeness.** Where the spec defines an output,
-  API, schema, or data model, the *shape downstream consumers (and the executor) depend on* is a
-  recurring source of late-caught gaps: the entities/fields and their constraints, the exact
-  response/output keys, the status/enum value sets (and whether two conceptually distinct fields
-  were collapsed into one), uniqueness/identity rules. A half-pinned contract derails downstream
-  work even when the behavior reads clear — so check the contract is fully specified, not just the
-  behavior. Whether a given spec even *has* such a contract is judged at runtime (a pure-CLI tool's
-  output format, a service's response schema, a library's return type — or nothing). Not a fixed
-  field checklist.
-- **Scale depth to stakes.** A small, low-blast-radius goal gets one quick pass; a complex,
-  high-blast-radius goal gets several diverse lenses (e.g. implementer lens: *what can't I build
-  from this?*; user-intent lens: *what did they likely mean that's unstated?*; edge lens: *what
-  breaks?*). No fixed number of passes — judgment, not a checklist.
+Pressing the whole intent inflates cost for little gain. Aim where the risk lives:
 
-The probe is a *re-aim of the review you already run*, not an extra stacked phase. Cost stays
-roughly flat; quality rises.
+- **Press the assumptions and the non-derivable decisions** — the things the code/material did not
+  settle. Code-derived, already-grounded content is low risk — skip it.
+- **Confirm the load-bearing technical shape was surfaced.** For greenfield (or any intent the code
+  did not pin), the persistence approach, interface/delivery form, and any plan-defining technical
+  choice must actually have been surfaced and settled. An un-surfaced shape is a material gap (only the
+  user can fill it). (Functional completeness is easy to over-focus on while the whole stack goes
+  unstated; this is the guard against that.)
+- **Probe the output / interface contract for completeness.** Where the intent defines an output, API,
+  schema, or data model, the *shape downstream consumers (and the executor) depend on* is a recurring
+  source of late-caught gaps: the entities/fields and their constraints, the exact response/output
+  keys, the status/enum value sets (and whether two conceptually distinct fields were collapsed into
+  one), uniqueness/identity rules. A half-pinned contract derails downstream work even when the
+  behavior reads clear — so check the contract is fully specified, not just the behavior. Whether a
+  given intent even *has* such a contract is judged at runtime (a pure-CLI tool's output format, a
+  service's response schema, a library's return type — or nothing). Not a fixed field checklist.
 
-## Split the findings (G2)
+## The three lenses (scale to stakes)
 
-Each finding is one of two kinds — handle them differently:
+A small, low-blast goal gets one quick pass; a complex, high-blast goal gets these diverse lenses,
+pressed harder:
 
-- **Internally resolvable** (a placeholder, a contradiction, an ambiguity the code or spec itself
-  settles) → **fix it in the spec** autonomously.
-- **A user-only intent-gap** (a decision only the user can make — the code cannot settle it) →
-  **do not auto-fix it**; that would bake a guess (violating escalate-don't-guess). **Reopen ELICIT
-  and ask the user** the specific question. This is the exception path; the normal path still shows
-  the user just once, at the final gate.
+- **Implementer lens** — *what can't I build from this?*
+- **User-intent lens** — *what did they likely mean that's unstated?*
+- **Edge lens** — *what breaks?*
 
-## Degrade mode (when subagents cannot nest)
+No fixed number of passes — judgment, not a checklist. These lenses are the *qualitative* companion to
+`gap-analysis.md`'s mechanical probes: the probes detect silences from the domain's type; these
+lenses press the high-stakes assumptions from a skeptic's angle.
 
-The probe is best run as a **separate reviewer subagent** (fresh eyes, has not seen the authoring
-reasoning — that independence is what makes it work). In an environment where nested subagent
-dispatch is unavailable, **degrade** to a *deliberately-separate self-adversarial pass*: do a
-deliberate **author→skeptic role toggle** — set aside the author role you just held, then re-read
-the spec as a skeptic whose only job is to find holes. Run the *same explicit lenses* the subagent
-path uses, applied inline: implementer lens (*what can't I build from this?*), user-intent lens
-(*what did they likely mean that's unstated?*), edge lens (*what breaks?*). Aim them with the same
-risk-proportional weighting — a small goal gets one quick skeptical pass, a high-blast-radius goal
-gets the lenses applied with more force and diversity. These lenses are a *floor* to provoke the
-toggle, not a fixed checklist; let what is actually at risk in this spec decide where to press.
-Both modes satisfy the gate; state which one ran.
+## What a lens raises is still a candidate
 
-## Gate
-
-Proceed to PLAN only when the probe returns **no blocking intent-gap** — i.e., every finding is
-either fixed in the spec (internally resolvable) or answered by the user (intent-gap reopened and
-resolved). A residual, unanswered intent-gap blocks; escalate it rather than guessing.
+Anything a lens surfaces is a **candidate**, not yet a question — it passes through `grounds-gate.md`
+(site / why-not-covered / consequence) and is asked with a recommended default attached, exactly like
+any other ELICIT candidate. A lens that cannot ground its finding drops it.
 
 ## Universality guard
 
-No concrete stack, framework, library, or tool name appears here. The probe's lenses and criteria
-are stack-agnostic; what is actually at risk is judged at runtime from the spec and the code.
+No concrete stack, framework, library, or tool name appears here. The lenses and criteria are
+stack-agnostic; what is actually at risk is judged at runtime from the intent and the code.

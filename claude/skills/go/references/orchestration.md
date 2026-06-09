@@ -28,21 +28,28 @@ long as each exit code is captured separately. The completion gate remains the f
 - Topologically sort the plan's `depends` into waves: a wave = tasks with no unmet dependency.
 - **Classify each wave:** multiple tasks = **parallel** (worktrees). Single task = **sequential**,
   whose execution mode is set by the task's `risk`:
-  - **`MECHANICAL` / `NONE` (or omitted)** → the **orchestrator implements directly on the base** (no
-    worktree, no dispatch, no integration gate) — commit on the base, verify, advance immediately.
-    The final review is the independent backstop, sufficient for low-risk work.
+  - **`MECHANICAL` / `NONE`** → the **orchestrator implements directly on the base** (no worktree, no
+    dispatch, no integration gate) — commit on the base, **verify with captured evidence** (same floor
+    as a dispatched implementer: command + captured exit code; real testable behavior left untested =
+    not done), advance. **You own conformance here — the final review is insurance, not your check.**
+  - **Omitted `risk`** → the producer did *not* judge; treat it as **unclassified, not `MECHANICAL`** —
+    judge at read time and bias toward dispatch / stronger verification if it shows any behavioral
+    surface (degrade-don't-corrupt, `design-principles.md §9`).
   - **`RISKY`** → **dispatch one subagent in a worktree** + merge-gate (independent verification, A=A
     avoidance; the merge-gate protects the base from risky work). This is the parallel-wave machinery
     with a single task — the final review must not be the *only* independent check on risky work.
   - A **no-file-diff** task always uses the base-pinned-subagent path (next bullet), regardless of risk.
 - **Parallel wave:** task worktrees branched from the base; ≤8 concurrent. Integration gate after
   merge catches cross-task interactions.
-- **ROI collapse (efficiency override).** A multi-task wave defaults to parallel worktrees, but the
-  orchestrator MAY collapse it (or all waves) to **orchestrator-direct on the base** when the
-  dispatch-ROI clearly doesn't pay — e.g. a **shared runtime** (one DB / container stack / port set)
-  throttles real parallelism, or a **greenfield** codebase where cross-agent convention drift would
-  cost more than the parallelism saves. **Surface the decision + reasoning to the user.** The final
-  review + completion gate remain the independent backstop. **Collapse does NOT skip the cascade-guard:**
+- **ROI collapse (objective conditions, not a free judgment).** A multi-task wave defaults to parallel
+  worktrees. Collapse to **orchestrator-direct on the base** **only** on an objective condition — a
+  **single shared runtime** the tasks cannot isolate within (one DB / container stack / port set), or a
+  **greenfield** codebase where cross-agent convention drift outweighs the parallelism. This is a *rule*,
+  not a free "ROI doesn't pay" call. **Record the collapse internally** (which wave, which condition) —
+  do **not** surface it for a non-technical user to adjudicate (they cannot evaluate a parallelism/
+  isolation trade-off, and the terms are internal tokens). Collapsed tasks carry the per-task evidence
+  floor and are **reviewed as if independently authored** — collapse removes dispatch overhead, never the
+  verification bar. **Collapse does NOT skip the cascade-guard:**
   the conditional mid-run spec-review still fires for any task meeting its narrow bar — **RISKY +
   downstream dependents + deviation-cascade risk** — even when implemented inline. Collapse saves
   dispatch / worktree / merge / per-wave-gate overhead, **not** that targeted guard. (RISKY alone
@@ -72,8 +79,9 @@ Before spawning any subagent, ask whether the dispatch buys at least one of:
 - meaningful context isolation for broad exploration or log/diff analysis
 - wall-clock speed from truly independent work
 
-If none apply, keep the work inline. Inline work still needs a commit, evidence, and final review;
-the optimization removes dispatch overhead, not verification.
+If none apply, keep the work inline. Inline work still needs a commit and **captured evidence**, and
+you **own its conformance** — the final review is insurance, not your check. The optimization removes
+dispatch overhead, never the verification bar.
 
 ## Sequential wave — execution
 
@@ -155,7 +163,7 @@ cross-wave interactions at the end.
   escalate**.
   - **Declared shared-resource expectations** (clean-slate / state-agnostic / additive-only /
     forbidden-mutations) are honored per the producer's dependency-calc rules.
-  - **Ordering / external-state deps** — Go honors explicit `depends` and serializes declared
+  - **Ordering / external-state deps** — `go` honors explicit `depends` and serializes declared
     external-state writers.
   - **Name agent-created ephemeral resources deterministically.** When a task (or scaffold) spins up
     an external runtime resource that takes a name — a container, a service instance, a database
@@ -172,7 +180,7 @@ the orchestrator knows its own state):
 
 | Status | Meaning | Orchestrator response |
 |---|---|---|
-| `DONE` | complete, self-checks pass | spec-review → merge |
+| `DONE` | complete, self-checks pass | merge (review per policy — the single final review, or a mid-run spec-review if it triggers) |
 | `DONE_WITH_CONCERNS` | complete, but flags something | record the concern; weigh at final review (or mid-run spec-review if review policy triggers it) |
 | `NEEDS_CONTEXT` | missing info to proceed | provide the missing context, re-dispatch |
 | `BLOCKED` | cannot proceed (conflict, ambiguity) | analyze; walk the bounded escalation ladder (below), then **escalate to the user** |

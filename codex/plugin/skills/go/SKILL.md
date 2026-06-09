@@ -1,21 +1,22 @@
 ---
 name: go
 description: >
-  Execute a refined 3-doc (handoff, spec, plan) produced by ready or set:
+  Execute a refined 3-doc (handoff, spec, plan) produced by ready:
   wave-based parallel implementation with right-sized verification (test-first where it fits),
-  spec-first review, and integration gates. Use when the user invokes the `go` skill after a producer wrote the 3-doc. Requires git.
+  spec-first review, and integration gates. Use when the user invokes the `go` skill after `ready` wrote the 3-doc. Requires git.
 ---
 
 # go
 
-> **Reply in the user's language, from your first message.** Every line you write — grounding,
-> progress notes, escalations, the final report, and the harness — goes in the language the user is
-> communicating in, written natively (never translationese). These instructions are in English; your
-> output is not. Full rule in Core principles below.
+> **Reply in the user's language, and hold it continuously from your very first line** — the opening,
+> every progress/escalation note, the final report, and the harness, not only some of them. Write
+> natively (never translationese). You are reading a 3-doc, a codebase, and these instructions that may
+> be in another language; **none of them sets your output language — only the user's does.** Full rule
+> in Core principles below.
 
-Consume the **3-doc** a producer (ready or set) wrote and realize the spec:
+Consume the **3-doc** `ready` (the producer) wrote and realize the spec:
 parallel, wave-based execution with right-sized verification (test-first where it fits), spec-first
-review, and integration gates. Runs in the **same session** the producer (ready/set) wrote the 3-doc
+review, and integration gates. Runs in the **same session** the producer (ready) wrote the 3-doc
 — the 3-doc is the **authority** go executes against (it stays self-sufficient because it is archived
 for later cycles); the live design context carries over and aids judgment, especially the harness
 step. **Load `references/orchestration.md` up front** (it governs the whole run); the prompt
@@ -48,26 +49,42 @@ references load at their steps.
   nothing — no parallelism, no file-isolation need, and the accumulating context is an asset). Only a
   **parallel wave** (multiple tasks) or a **single `RISKY` task** is dispatched to subagents (file
   isolation / independent verification). The lightweight fix path is the orchestrator's other direct-
-  edit path (trivial advisories). A multi-task wave may also be **collapsed to orchestrator-direct**
-  when dispatch-ROI clearly doesn't pay (a shared runtime throttles parallelism, greenfield
-  convention consistency) — surfaced to the user, with the final review as backstop and the narrow
-  mid-run spec-review (RISKY + downstream + cascade) still honored (`orchestration.md`, "ROI collapse").
+  edit path (trivial advisories). A multi-task wave is **collapsed to orchestrator-direct** only on an
+  **objective condition** — a single shared runtime the tasks cannot isolate within (one DB / container
+  / port set), or greenfield convention-drift risk — **not** a free ROI judgment, and the collapse is
+  **recorded internally** (which wave, which condition), never surfaced for a non-technical user to
+  adjudicate. Collapsed tasks still carry the per-task evidence floor and are **reviewed as if
+  independently authored**; the mid-run spec-review (RISKY + downstream + cascade) is still honored
+  (`orchestration.md`, "ROI collapse").
 - **Efficiency Budget.** Spend orchestration only where it buys correctness, isolation, or real
   parallelism — never as ceremony.
+- **The final review is silent insurance — not a backstop you lean on.** Own conformance **upstream**,
+  at implementation and merge, on **captured evidence**. Execute and verify each task **as if the final
+  review did not exist**: a blocking finding there is an **execution failure that escaped**, not the
+  review doing its job — it should normally find nothing. Told "the review will catch it," an LLM
+  drifts to the minimum that passes — that is **reward-hacking**, laziness in the costume of "the
+  backstop handles it," and you must actively resist it (the same discipline ready's ELICIT carries,
+  `design-principles.md §6`). The review catches only the *rare residual*; it is never the owner.
 - **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed
   and the *specific language* is discovered at runtime, never assumed: produce every user-facing
   output — your reports/escalations **and the harness** you create/update — in the language the user
   communicates in, written **natively** (as a fluent speaker of that language would, never
   translationese). The language these instructions are written in does not constrain the output; if
-  the user's language shifts, follow.
-- **Talk to the user only when needed, in plain words — default to silence on process.** Emit
-  user-facing text only for: (a) a question you genuinely need answered, (b) the final result or a
-  concise summary, (c) a real blocker — optionally prefixed by a one-line, user-meaningful heading
-  for the current step. Nothing else: don't narrate *what* you're doing, *how*, or *why* a step is
-  needed; don't expose internal mechanics (reference/file names, phase/mode/lens labels, "loading
-  references", "Read N files"). Write what you do say in a **plain, non-technical register** — the
-  words a non-engineer would understand. This is your default voice, not a per-line check, so it
-  costs nothing. **Never surface internal tokens:** dryforge mechanism / coined terms (wave,
+  the user's language shifts, follow. **Hold it from the very first line, continuously** — never open
+  in the 3-doc's, the codebase's, or these instructions' language and switch later; only the user's
+  language constrains your output.
+- **Talk to the user only when needed — between beats, say nothing.** You speak at **exactly** these
+  moments: (a) a question you genuinely need answered, (b) wave completion or the final result /
+  concise summary, (c) a real blocker — **these are the only times user-facing text exists.**
+  Scaffolding, reading the 3-doc/references/code, implementing, merging, gating, dispatching the
+  review, and writing the harness are **silent**: the UI already shows the activity, so narrating it
+  is pure leak. If what you are about to emit is none of (a)/(b)/(c), the correct output is **nothing**.
+  **Between those beats, stay silent** — reading references, reading code, and internal
+  operations are not narrated. **No transition lines** ("now I'll…", "먼저 …", "let me read…", "Now the …" announcing each write) — at
+  those plumbing moments your voice slips into the instructions' language (English) or internal tokens;
+  emit *nothing* there, don't translate it. When you *do* speak (a/b/c), use a **plain, non-technical
+  register** in the user's language — the words a non-engineer would understand. This is your default
+  voice, not a per-line check, so it costs nothing. **Never surface internal tokens:** dryforge mechanism / coined terms (wave,
   worktree, harness, delta, 3-doc, gate, seam, ROI collapse, spec-review, grounding, lens,
   invariant), task / step / risk labels (`T1`, `Wave 2`, RISKY / MECHANICAL / NONE), or
   project-internal jargon a non-engineer wouldn't recognize (library/tool names, config flags,
@@ -101,12 +118,15 @@ references load at their steps.
   (hard gates section) or discovered during scaffold from the project's build scripts. Identify them
   before the first wave; they are used in every integration gate and the completion gate.
 - Read **handoff first** (it governs: document roles, hard gates, execution shape), then spec and
-  plan. **If the handoff has a Project Foundation section** (first cycle — `references/foundation-format.md`),
-  read it as **non-executable project context**: it informs implementation judgment (design the task
-  to fit the project's wider domain/decisions) and is a source for the harness at the end — it is
-  *not* an implementation target. Build the spec's task, using the Foundation as context. Parse the
+  plan. **First-cycle precondition (check now, not at the end):** if this is a first cycle (no harness
+  on disk) and the handoff has **no** Project Foundation section, that is a **precondition violation** —
+  **stop here and ask the user to regenerate the 3-doc via `ready`**, *before* any implementation. Do
+  not discover this at step 9 after a wasted run (`harness-lifecycle.md`). **If the handoff has a Project
+  Foundation section** (first cycle — `references/foundation-format.md`), read it as **non-executable
+  project context**: it informs implementation judgment (design the task to fit the project's wider
+  domain/decisions) and is a source for the harness at the end — it is *not* an implementation target. Build the spec's task, using the Foundation as context. Parse the
   plan's Execution Graph **per `references/graph-contract.md`** — the consumer-side schema (what the
-  YAML fields mean and the rules go must hold when reading them). It mirrors the producers' authoring
+  YAML fields mean and the rules go must hold when reading them). It mirrors the producer's authoring
   schema; if the plan's graph contradicts it, that is a producer-side defect → stop and escalate.
 
 ## Graph validation (before any irreversible worktree creation)
@@ -143,7 +163,7 @@ implementer before the first wave.
 **Review policy (natural language, orchestrator judgment).**
 Default: a single **final review** after all waves merge — one subagent checks the full diff for
 spec conformance + code quality (`reviewer-prompt.md`), plus the harness (content + format) when it
-was created/updated this cycle (step 10). This replaces per-task spec-review and per-wave code-review
+was created/updated this cycle (step 9). This replaces per-task spec-review and per-wave code-review
 for most graphs. Mid-run review is added only when the orchestrator judges
 that **a RISKY task with downstream dependents could cascade a deviation** — then that task gets a
 spec-review before merge. The judgment comes from the Execution Graph: `risk` + `depends`.
@@ -158,12 +178,19 @@ when a lightweight fix would take seconds.
 (full rules in `references/orchestration.md`):
 
 1. **Pick the mode by `risk`.**
-   - **`MECHANICAL` / `NONE` / omitted (file-diff task) → orchestrator-direct.** The orchestrator
+   - **`MECHANICAL` / `NONE` (file-diff task) → orchestrator-direct.** The orchestrator
      reads the task's behavioral contract + spec slice itself and implements **directly on the base**
-     — no dispatch, no worktree, no prompt authoring. Right-sized verification (capture command +
-     exit code); commit on the base. The final review is the independent backstop. If the task proves
-     ambiguous, behavioral, multi-file, or riskier than declared, treat it as a runtime risk upgrade
-     (`graph-contract.md`) and strengthen verification.
+     — no dispatch, no worktree, no prompt authoring. **The same captured-evidence floor that binds a
+     dispatched implementer binds you here** (`implementer-prompt.md`): right-sized but *real*
+     verification (command + **captured** exit code; **real testable behavior left untested = not
+     done**, never a "right-size" excuse). Commit on the base. **You own conformance on this path — the
+     final review is insurance, not your check.** If the task proves ambiguous, behavioral, multi-file,
+     or riskier than declared, treat it as a runtime risk upgrade (`graph-contract.md`) and strengthen
+     verification.
+   - **Omitted `risk` (producer did not judge) → unclassified, *not* `MECHANICAL`.** Do **not** default
+     it to the direct path: judge at read time and **bias toward dispatch / stronger verification** the
+     moment any behavioral surface appears (`orchestration.md`, `graph-contract.md` —
+     degrade-don't-corrupt, `design-principles.md §9`).
    - **`RISKY` (file-diff task) → one subagent in a worktree** (`implementer-prompt.md`), then
      **merge-gate** into the base — independent verification, so the final review is not the only
      check on risky work.
@@ -190,7 +217,9 @@ when a lightweight fix would take seconds.
    (sharing guidance in `orchestration.md`).
 2. **Dispatch implementers** — one subagent per task, in parallel, ≤8 at a time
    (`implementer-prompt.md`): right-sized verification, shared-write constraints, pinned worktree
-   path.
+   path. Dispatch every implementer and reviewer as a **general-purpose** subagent (full
+   read/edit/run tools — never a plan-only or search-only agent type: an implementer must edit and
+   run, a reviewer must read and cross-check).
 3. **Collect** — each returns a structured summary.
 4. **Spec review** (conditional) — only when the review policy calls for it.
 5. **Merge serially** into the base. **Merge-gate per task (objective, not existence-only):** the task
@@ -216,21 +245,26 @@ when a lightweight fix would take seconds.
 **After all waves:**
 
 8. **Completion gate** — the full verify set on the base. **SHA reuse rule:** if the last parallel
-   wave's integration gate passed AND the base tip SHA has not changed since that gate (no
-   lightweight fix, no wiring, no regen committed after it), the completion gate is satisfied by
-   the prior gate's captured result — do not re-run. If any commit landed after the last gate,
-   re-run the full verify set.
+   wave's integration gate passed, **ran the full verify set** (not the affected-only subset), AND the
+   base tip SHA has not changed since that gate (no lightweight fix, no wiring, no regen committed
+   after it), the completion gate is satisfied by the prior gate's captured result — do not re-run.
+   If any commit landed after the last gate, **or that gate was affected-only**, re-run the full verify set.
 
 9. **Harness create / update** (`references/harness-lifecycle.md` + `references/harness-format.md`,
    force-load). After the completion gate, before the final review: **re-read the 3-doc** (mandatory —
    the session is now code-biased), then act on the local marker `.dryforge/status.json`:
    - **First cycle** (marker absent): create the whole harness — CLAUDE.md / AGENTS.md + `docs/` +
-     module AGENTS.md — from the handoff's Project Foundation + spec + code (degrade to spec + code +
-     handoff when there is no Foundation). Back up + critically rework any existing CLAUDE.md with
-     user approval.
+     module AGENTS.md — from the handoff's Project Foundation + spec + code. The Foundation is a
+     **first-cycle invariant** (`ready` always writes it); if a first-cycle handoff has **no
+     Foundation section**, do **not** guess one from spec + code — **stop and ask the user to
+     regenerate the 3-doc via `ready`** (`harness-lifecycle.md`, fail-fast precondition). Back up +
+     critically rework any existing CLAUDE.md with user approval.
    - **Delta** (marker present): update only the changed-scope `docs/` (read all current docs first;
      escalate an in-scope conflict; new module → new AGENTS.md + navigation-tree update).
    See `harness-lifecycle.md` for the marker rule and the clobber safety guard.
+   **Write every file silently** — do not announce each file or section as you go ("Now the docs…",
+   "이제 모듈 노트를…", "Now the module roadmap note in `X`"); the UI already shows each write. This
+   multi-file writing sequence is the last place narration leaks — emit nothing between writes.
 
 10. **Final review** — one subagent checks the **full diff on the base** for spec conformance + code
     quality, **and the harness** (when created/updated this cycle) against `references/harness-review.md`

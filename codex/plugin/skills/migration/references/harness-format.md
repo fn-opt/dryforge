@@ -215,8 +215,8 @@ of information, not a stack or domain — if the project has none of that kind, 
   domain invariant is also enforced in code, standards records the **structural rule** ("no direct
   price field on the entity", "every variant write goes through service validation") and the
   **verification** ("tests must cover this invariant") — **not the invariant's content**, which stays
-  in business-rules. Don't restate the invariant itself in standards (that's a business-rules / §2.5
-  altitude leak).
+  in business-rules. Don't restate the invariant itself in standards (that's a business-rules altitude
+  leak).
 - **Not a standards rule: the current cycle's scope-freeze.** "Don't build feature X yet" is a
   *status* (→ status.md's "remaining"), not a permanent MUST/MUST-NOT. standards holds only
   permanent rules.

@@ -1,7 +1,7 @@
 interface:
   display_name: "dryforge ready"
-  short_description: "Turn a goal into a grounded 3-doc."
-  default_prompt: "Use dryforge ready to turn this goal into a 3-doc: "
+  short_description: "Turn a goal, design docs, or notes into a grounded 3-doc."
+  default_prompt: "Use dryforge ready to turn this into a 3-doc: "
 
 policy:
   allow_implicit_invocation: false

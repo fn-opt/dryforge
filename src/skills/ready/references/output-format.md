@@ -1,7 +1,7 @@
 # output-format.md — the 3-doc contract
 
-Defines what a **producer skill** (set or ready) outputs and
-**go consumes**. This is the contract between the producer skills and go.
+Defines what **`ready`** (the producer) outputs and **`go` consumes**. This is the contract between
+`ready` and `go`.
 
 **Core principle:** exactly ONE part is a rigid, machine-parsed schema — the
 Execution Graph. The three documents' bodies are *content requirements*: the agent
@@ -19,17 +19,38 @@ Must convey (structure is the agent's to design — 3 hard gates or 30):
   picture (execution shape).
 - **Hard gates**: non-negotiable constraints the executing agent cannot derive from code alone.
 - Intent decided while authoring but not captured in spec/plan.
-- **First cycle only (no project harness yet):** the handoff may carry a **Project Foundation**
+- **First cycle only (no project harness yet):** the handoff **carries** a **Project Foundation**
   section — the project-wide foundation (full domain model, technical decisions, future scope) that
-  seeds the harness `go` creates at the end. ready produces it through its first-cycle design system
-  (its `foundation-format.md`); set does not (go degrades to spec + code). Omit it in later cycles
-  (the harness has taken over the project-context role).
+  seeds the harness `go` creates at the end. `ready` produces it through its first-cycle ELICIT loop
+  and writes it at the SPEC step (`foundation-format.md`). It is **required** in a first cycle — there
+  is no degrade path; `go` treats a missing Foundation in a first cycle as a precondition violation and
+  stops (`foundation-format.md`, "First-cycle precondition"). Omit it in later cycles (the harness has
+  taken over the project-context role).
 
 ### spec — what to build (ground truth)
 Must convey: product behavior; key design rationale (decision + why); domain
 decisions/invariants; API surface; edge cases as explicit rules; required verification.
 spec is ground truth — on conflict spec wins; spec errors are fixed only with user
 approval.
+
+**The spec transcribes the settled decision surface — it does not make or defer decisions.** ELICIT
+already settled every load-bearing decision, *including the contract* (`elicitation.md`'s CONTRACT
+lens: data-model fields and their constraints, the exact status/enum value **sets**, uniqueness/
+identity rules, output keys, whether two conceptually distinct fields were collapsed into one). Pin
+each of those **here, the first time — as precisely as if no downstream gate existed.** Do **not** ship
+a half-pinned contract for the 3-doc-gate to tighten over rounds: a gate catching a precision gap is an
+*upstream failure* (design-principles §6), not the gate's job, and leaning on it is the reward-hack
+`elicitation.md` forbids. (A genuine tuning default with no user preference is *pinned* as a default
+**marked tunable** — D4 — which is settling it, not deferring it.)
+
+**The spec is pure content — no provenance/attribution tags.** Every load-bearing decision appears as
+a settled rule, written from understanding the user's intent (`elicitation.md`). Do **not** annotate
+decisions with who-decided markers (`[user-decided]` / `[agent-default]`) or target/context labels —
+those are internal tokens, they clutter the user-facing document, and the artifact does not need them.
+That a decision is the user's intent (not an agent guess) is ensured *upstream* — by ELICIT's
+"no-guess-survives" exit and the independent intent-completeness check (`intent-completeness.md`) — not
+by a tag in the doc. The only annotation a decision carries is its **reason in the thinking-base** when
+non-derivable (below), written in the user's terms as prose.
 
 ### plan — what to do (tasks + the machine graph)
 Must convey: per-task **behavioral contract** (goal, **work targets** — files |
@@ -93,13 +114,40 @@ list, a routes table, …). Two layers, not a strict prediction:
   translationese; the language this contract is written in does not constrain the 3-doc.
 - Replace premature implementation code with **behavioral contracts** (goal,
   invariants, what-to-test — not how).
-- **thinking-base**: record *decision + reason* where the executing agent could not derive
-  it from code. **Never fabricate a reason** — if you would have to invent it, escalate to
-  the user.
 - **Stack-agnostic**: no project-specific assumption as a rule; specifics (build
   targets, regen commands, conventions) are discovered from the project.
 - The three docs' section layout is the agent's to design; only the content above is
   required.
+
+## thinking-base (decision + reason) — the derivability test
+
+Record a reason only where a fresh agent, reading the project code, could **not** reach the
+designer's decision on its own. Test in order:
+
+1. **Derivable from code?** → **Yes**: no reason needed (the code says it).
+2. **Unsure if it's derivable?** → include it (gray-zone default: an over-included reason is cheap; a
+   missing one derails the executing agent).
+3. **Not derivable (a reason is needed)** → is it **actually on the record** — settled in the
+   dialogue / material?
+   - **Yes** → record *decision + reason*.
+   - **No — you'd have to invent it** → **do NOT write a reason. Ask the user.** A fabricated reason is
+     worse than none: it sends the executing agent confidently the wrong way. (Never attribute a
+     reason to something that was not actually decided.)
+
+**Tuning values are recorded as defaults, not grounded decisions.** A configurable value within an
+already-settled mechanism that is a *conventional default* or is *tuned later by feel* — one the user
+has no preference on — is a tuning value, *not* a user-grounded decision (`elicitation.md`, "exit bar
+item 2"). Record a sensible default and **mark it tunable**, so the executor knows it is adjustable,
+not a hard requirement. This is **not** a thinking-base reason (it is derivable / a default), and it
+must **not** be forced through the user — that is over-asking (§5, §12). The *mechanism* it sits in is
+the load-bearing decision; the *value* is the tunable. (Mechanism vs tuning value is judged per project,
+never a fixed list.)
+
+Frequent categories (accelerators for spotting candidates, **not** an exhaustive list): trade-off /
+external constraint / scope boundary / convention exception / domain invariant / non-functional (a
+chosen quality attribute: security posture, consistency level, perf budget) / rejected alternative (an
+option the designer considered and discarded — record it, and why, so a downstream agent doesn't
+"improve" the design back into the rejected choice).
 
 ## A complete worked example
 

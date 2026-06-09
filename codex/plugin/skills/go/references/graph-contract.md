@@ -1,9 +1,9 @@
 # graph-contract.md — the Execution Graph, from go's side (parse contract)
 
-go does **not** compute dependencies — a producer (ready or set) already did, against the whole
+go does **not** compute dependencies — `ready` (the producer) already did, against the whole
 project. go's job is to *parse* the graph faithfully and schedule from it. This file is the
 schema go reads against, so the parser has an authoritative reference instead of re-deriving the
-shape from memory. The producers' authoring view is in their own `output-format.md` /
+shape from memory. The producer's authoring view is in its own `output-format.md` /
 `dependency-calc.md` (in the producer's references, not go's); this is the same contract, stated
 for the consumer.
 
@@ -29,10 +29,13 @@ regen_barriers:
   (1) it sizes the **per-task test ceremony** passed to the implementer; (2) for a **single-task
   (sequential) wave** it picks the **execution mode** — `MECHANICAL` / `NONE` → the orchestrator
   implements directly on the base; `RISKY` → dispatch a subagent in a worktree (independent
-  verification, A=A avoidance, base protected by the merge-gate). It still **never** changes gate
-  topology or whether code is verified or reviewed; multi-task waves always dispatch regardless of
-  risk. **Omitted → treated as `MECHANICAL`** (orchestrator-direct), and the implementer judges test
-  ceremony at build time as before — no break.
+  verification, A=A avoidance, base protected by the merge-gate). Risk sizes test ceremony and
+  single-task execution mode; **review topology is governed by `orchestration.md`'s review policy** (a
+  `RISKY` task *with downstream dependents + cascade risk* may add a mid-run spec-review — risk alone
+  does not). Multi-task waves always dispatch regardless of risk. **Omitted `risk` = the producer did
+  not judge → treat as *unclassified*, not `MECHANICAL`:** go judges at read time and biases toward
+  dispatch / stronger verification if any behavioral surface appears (degrade-don't-corrupt,
+  `design-principles.md §9`); the implementer still judges test ceremony at build time — no break.
 - **Runtime risk upgrade.** If the producer marked a task `MECHANICAL` / `NONE` but go finds it is
   actually `RISKY` while implementing (an unexpectedly complex state change, an external-system
   integration), the orchestrator strengthens independent verification. It does **not** switch an

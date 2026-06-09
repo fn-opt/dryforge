@@ -1,7 +1,7 @@
 {
   "name": "dryforge",
-  "description": "Intent-to-implementation: elicit or refine a spec and plan grounded in real project code, then orchestrate dependency-aware parallel execution with right-sized review.",
-  "version": "1.0.2",
+  "description": "Intent-to-implementation: from a goal, design docs, notes, or a mix, elicit and validate intent into a grounded 3-doc, then orchestrate dependency-aware parallel execution with right-sized review.",
+  "version": "1.1.0",
   "license": "MIT",
   "keywords": ["spec", "plan", "intent", "elicitation", "execution", "orchestration", "parallel", "subagent", "tdd", "code-review", "worktree"],
   "author": { "name": "fn-opt" }
