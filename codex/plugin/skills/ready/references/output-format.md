@@ -28,8 +28,9 @@ Must convey (structure is the agent's to design — 3 hard gates or 30):
   taken over the project-context role).
 
 ### spec — what to build (ground truth)
-Must convey: product behavior; key design rationale (decision + why); domain
-decisions/invariants; API surface; edge cases as explicit rules; required verification.
+Must convey: objective + motivation; product behavior; key design rationale / thinking-base
+(decision + why, where not code-derivable — see below); domain decisions/invariants; scope
+boundaries; API surface; edge cases as explicit rules; required verification.
 spec is ground truth — on conflict spec wins; spec errors are fixed only with user
 approval.
 
@@ -39,9 +40,9 @@ lens: data-model fields and their constraints, the exact status/enum value **set
 identity rules, output keys, whether two conceptually distinct fields were collapsed into one). Pin
 each of those **here, the first time — as precisely as if no downstream gate existed.** Do **not** ship
 a half-pinned contract for the 3-doc-gate to tighten over rounds: a gate catching a precision gap is an
-*upstream failure* (design-principles §6), not the gate's job, and leaning on it is the reward-hack
+*upstream failure*, not the gate's job, and leaning on it is the reward-hack
 `elicitation.md` forbids. (A genuine tuning default with no user preference is *pinned* as a default
-**marked tunable** — D4 — which is settling it, not deferring it.)
+**marked tunable** — which is settling it, not deferring it.)
 
 **The spec is pure content — no provenance/attribution tags.** Every load-bearing decision appears as
 a settled rule, written from understanding the user's intent (`elicitation.md`). Do **not** annotate
@@ -85,7 +86,7 @@ regen_barriers:
   invariant, state-coordination, or validation rule; NONE if the target is config / schema / docs /
   pure scaffold with no behavioral surface; otherwise MECHANICAL. This is a derivation heuristic
   judged per task, not a fixed checklist. If a producer omits it, go falls back to the implementer
-  judging risk at build time (today's behavior) — no break.
+  judging risk at build time — no break.
 - go derives waves by topological sort of `depends`, then dispatches in
   batches of **≤8 concurrent**.
 - `regen_barriers` = cross-cutting steps between waves (timing: after task X). The
@@ -139,9 +140,9 @@ already-settled mechanism that is a *conventional default* or is *tuned later by
 has no preference on — is a tuning value, *not* a user-grounded decision (`elicitation.md`, "exit bar
 item 2"). Record a sensible default and **mark it tunable**, so the executor knows it is adjustable,
 not a hard requirement. This is **not** a thinking-base reason (it is derivable / a default), and it
-must **not** be forced through the user — that is over-asking (§5, §12). The *mechanism* it sits in is
-the load-bearing decision; the *value* is the tunable. (Mechanism vs tuning value is judged per project,
-never a fixed list.)
+must **not** be forced through the user — that is over-asking. The *mechanism* it sits in is
+the load-bearing decision; the *value* is the tunable. (Mechanism vs tuning value is judged per
+project, never a fixed list.)
 
 Frequent categories (accelerators for spotting candidates, **not** an exhaustive list): trade-off /
 external constraint / scope boundary / convention exception / domain invariant / non-functional (a

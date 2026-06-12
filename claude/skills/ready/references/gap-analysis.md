@@ -8,7 +8,7 @@ they produce clears `grounds-gate.md` before it becomes a confident question.
 
 This is *detection*, not disposition: it surfaces gaps and candidates; ELICIT decides what to ask
 (`elicitation.md`), and conflicts/traces handled elsewhere are not re-done here (structural grounding
-is ORIENT's, spec↔plan trace is PLAN's G6, source conflicts are DECOMPOSE's flags).
+is ORIENT's, spec↔plan trace is PLAN's trace gate, source conflicts are DECOMPOSE's flags).
 
 ## Depth probe — coverage vs floor, per axis
 

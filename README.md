@@ -34,6 +34,19 @@ codex plugin add dryforge@dryforge
 
 <sub>Requires `git` and Claude Code or Codex.</sub>
 
+**Update** — Codex picks up new releases automatically at startup. Claude Code: enable
+auto-update for the `dryforge` marketplace in `/plugin` → Marketplaces (off by default for
+community marketplaces), or update manually:
+
+```
+# Claude Code
+/plugin marketplace update dryforge
+/plugin update dryforge@dryforge
+
+# Codex (immediately, without restarting)
+codex plugin marketplace upgrade dryforge
+```
+
 ---
 
 ## Every prompt is underspecified
@@ -72,6 +85,7 @@ rationale **at the path every future session reads first**.
   /ready <INPUT>  ──▶  /go      ──▶  working software + the project harness
 
   # <INPUT> — an idea, a spec, scattered notes: anything, or nothing
+  # short for /dryforge:ready · /dryforge:go · /dryforge:migration
 
 
   Already have running code?

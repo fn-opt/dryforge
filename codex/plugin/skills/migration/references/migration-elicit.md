@@ -11,7 +11,7 @@ floor; how you run the conversation is yours. Never hardcode questions or stack 
 **Calibrate to the project's character first.** Right-size the conversation to what the project *is* —
 a 200-line CLI and a 200k-line multi-domain platform do not earn the same depth. Read scale, domain
 density, and surface area from SCAN, then spend deep extraction where the domain is core and a light
-confirm where it's peripheral (§8 right-sized, §12 effort-proportional). Don't run uniform full-depth
+confirm where it's peripheral (right-sized, effort-proportional). Don't run uniform full-depth
 ceremony on a trivial repo, nor a light pass on a domain-heavy one. (State the read in prose, not a
 grade — a grade becomes a ceiling.)
 
@@ -48,7 +48,7 @@ fatigues the user and erodes trust.
 SCAN produces a **manifest**: every entity/module, pattern, security surface, external dependency, and
 *gap* (something a domain like this usually has, absent here). Treat it as a **ledger** — each item
 must end ELICIT in exactly one **recorded** disposition, so completeness is a *scan over the ledger*
-(evidence), not a "did I cover everything?" feeling (§6 evidence-not-assertion):
+(evidence), not a "did I cover everything?" feeling (evidence-not-assertion):
 - **confirmed** — its domain purpose / governing rule is user-confirmed.
 - **asked-answered** — surfaced to the user and resolved.
 - **N/A — reason** — genuinely not load-bearing here, with the reason recorded.
@@ -63,6 +63,26 @@ Drive a question from each open item (translate to the user's language, below):
 
 No item is silently dropped — an un-dispositioned row is an open question, not a pass. (This is
 migration's form of `ready`'s decision-surface accounting: the SCAN manifest *is* the surface.)
+
+## Delivery — structured questions that never dead-end
+
+When options are enumerable, prefer the platform's structured-input tool (2–4 options, recommended
+first labeled `(Recommended)`, "Other" allowed); pure open questions stay plain text. Give each
+structured question a **very short header/label (a word or two)** and keep option labels short — an
+over-long header/label, or more options than the cap allows, makes the structured tool **reject the
+call**. If the structured-input tool ever rejects or fails, **immediately re-ask the same question as
+plain text** — never stall or dead-end on a tool error.
+
+**For a DOMAIN (extract) question delivered as choices, an explicit open option is MANDATORY** — a
+"none of these — here's mine" / "I have a different idea" choice *visible among the options*, not just
+the platform's generic "Other". **The open option counts toward the 4-option cap** — so a domain choice
+question carries **at most 3 substantive options + the open one** (4 total); if more substantive options
+than that are in play, drop to **plain text** rather than overflow the cap (overflowing rejects the
+call). Domain knowledge is the **user's**; your options are a *scaffold / recommendation*, never the
+boundary of what they may answer — boxing a domain question into your options is the opposite of
+extracting. A genuinely open domain question (where you can't even enumerate sensible options) is
+better asked as **plain text**. (Technical *present* questions, where the option space is legitimately
+yours, don't need the mandatory open option — there the recommendation is the point.)
 
 ## Translate code into the user's language (the user may be non-technical)
 

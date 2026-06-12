@@ -18,7 +18,8 @@ missing behavior, violated invariants, edge cases the spec specifies that the co
 and pattern divergence across independently-written code. The integration gate already proved the
 combined state builds and runs — your scope is what mechanical gates cannot see.
 
-**Lens 3: harness content** and **Lens 4: harness format** — apply only when the harness was created
+**Lenses 3–4: harness** (all four dimensions of `harness-review.md`, not only content/format) —
+apply only when the harness was created
 or updated this cycle. Do **not** inline harness criteria here; apply the four dimensions in
 `references/harness-review.md` (provided with your dispatch) — content (substantive density + quality
 principles), format (self-containment, altitude, no references), completeness (required files

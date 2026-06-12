@@ -51,7 +51,7 @@ Foundation is a **conditional expansion inside the handoff's "supplement" role**
 - **At execution.** `go` reads the Foundation when it first reads the handoff → it implements the
   spec's task *with* project context. (E.g. a Foundation that records a role-based permission model
   makes `go` design the spec's "auth implementation" with role support in mind.)
-- **At harness creation.** Each Foundation area maps to `docs/` files per `harness-format.md`:
+- **At harness creation.** Each Foundation area maps to `docs/` files per `go`'s `harness-format.md`:
   domain model → business-rules.md; technical decisions → architecture.md + security.md +
   standards.md + operations.md; identity → the CLAUDE.md overview; future scope → status.md's
   "remaining."
@@ -70,11 +70,11 @@ work around. If `go` runs a first cycle (no `status.json`) and the handoff carri
 section**, that is a **precondition violation, not a degrade path** — `go` does **not** guess a
 Foundation from spec + code. It **stops and asks the user to regenerate the 3-doc via `ready`**
 (escalate-don't-guess). (This is a fail-fast check, not a fallback mode — the operational rule lives
-in `harness-lifecycle.md`.)
+in `go`'s `harness-lifecycle.md`.)
 
 ## Content quality
 
-The §quality bar of `harness-format.md` (non-derivability, work-changing, density,
+The same content-quality bar that governs the harness (non-derivability, work-changing, density,
 project-specificity, consequence-of-absence) applies to the Foundation too. A thick Foundation is
 normal, but every sentence must carry a core fact — not padding.
 

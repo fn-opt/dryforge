@@ -9,7 +9,9 @@ shape (spec = behavior, plan = tasks + Execution Graph, a deferred wiring step) 
 deliverable — an infrastructure change, a documentation set, a data pipeline, a one-off script —
 only the *content* of the behavioral contracts changes, never the structure. Copy the *structure and
 altitude*, not the words or the domain. (Only the Execution Graph is a rigid schema; the prose
-layout is the author's to design — see `output-format.md`.)
+layout is the author's to design — see `output-format.md`.) The example is **delta-shaped**: its
+handoff carries no Project Foundation section — in a first cycle the handoff additionally carries
+the Foundation (`output-format.md`), so do not anchor on this example for that section's absence.
 
 The example feature: **idempotent task submission** — clients may retry a submit; the same logical
 request must never be processed twice.

@@ -71,7 +71,7 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   conflict in ORIENT; detection is DECOMPOSE's, the question is ELICIT's. **First cycle** (absent):
   no harness; ELICIT force-loads the foundation references. ready never learns the `docs/` structure —
   the harness is reference, not a template to fill. (Physical document presence does **not** branch —
-  that was the old two-entry split, now unified into this one door.)
+  the cycle marker is the only branch.)
 - **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed and
   the *specific language* is discovered at runtime, never assumed: produce every user-facing output —
   the dialogue **and the 3-doc** — in the language the user communicates in, written **natively** (as
@@ -131,10 +131,10 @@ ELICIT           elicitation.md · gap-analysis.md · intent-review.md · ground
 intent-completeness  intent-completeness.md  ← independent guess-hunt → loop to user (subagent)
 SPEC + REVIEW(A) output-format.md · review-fidelity.md            [first]+ foundation-format.md
 PLAN             output-format.md · dependency-calc.md · example-3doc.md
-HANDOFF          output-format.md · foundation-format.md
+HANDOFF          output-format.md                                   [first]+ foundation-format.md
 3-doc-gate       3-doc-gate.md                                    [first]+ first-cycle-review.md
                  ← independent dispatch (the final backstop)
-G7 (the one human checkpoint)
+USER GATE (the one human checkpoint)
 ```
 
 ## ORIENT — absorb · branch · ground
@@ -236,7 +236,7 @@ identity), **BEHAVIORAL** (lifecycle/concurrency/policy/edges — name the kind 
 (persistence/interface/consistency), **CONTRACT** (status·enum *sets*/uniqueness/output keys). Lenses
 are accelerators, not a fixed catalog. **Enumerate ≠ ask:** resolve each slot in order — user-model
 grounds it → realize (don't ask); tuning value inside a settled mechanism → default *marked tunable*
-(don't ask, D4); else **`assumed`** → ask (extract/present). So enumerate *exhaustively* but ask
+(don't ask); else **`assumed`** → ask (extract/present). So enumerate *exhaustively* but ask
 *minimally* (≤4 questions·options per structured prompt, lead with a recommendation, `grounds-gate.md`
 filters; never skip a load-bearing one; **if the structured tool fails, re-ask as plain text — never
 dead-end**). First cycle / unfixed stack: you MUST have **presented** the load-bearing technical shape
@@ -267,11 +267,9 @@ Force-load `references/output-format.md` and `references/review-fidelity.md` (+ 
 `references/foundation-format.md`).
 
 1. **Write `.dryforge/spec.md` — from the *validated intent*, not the input.** Dense; premature
-   implementation excluded. Contents (the `output-format.md` contract): objective + motivation /
-   invariants and preserved contract (load-bearing) / behavior rules (edges as explicit rules) / scope
-   boundaries / thinking-base for non-derivable decisions (decision + reason — judged by derivability;
-   never invent a reason) / API surface / required verification (if ORIENT found no verify command,
-   record that gate decision here).
+   implementation excluded. The item list is `output-format.md`'s contract — it owns the list; follow
+   it there (if ORIENT found no verify command, record that gate decision in the spec's
+   required-verification item).
 2. **First cycle — write the Foundation too, into `handoff.md`.** Write ELICIT's Foundation 4 sections
    (identity / domain / technical / future) into `handoff.md`'s Foundation section **now** (the rest
    of the handoff's governing parts wait for the plan and are filled at HANDOFF; the Foundation does
@@ -282,8 +280,9 @@ Force-load `references/output-format.md` and `references/review-fidelity.md` (+ 
 3. **REVIEW(A) — fidelity only, inline.** Check that what the session settled landed in the document
    without evaporation or distortion (+ first cycle: the written Foundation). Internally resolvable →
    fix the spec; a user-only intent-gap → reopen ELICIT for that gap only (the one mid-run user
-   question). Completeness is **not** checked here (`review-fidelity.md` — A=A; that is the
-   3-doc-gate's job). **Gate:** zero blocking fidelity gaps; no user-only intent-gap remains.
+   question). Completeness is **not** checked here (`review-fidelity.md` — A=A): ELICIT owns it
+   upstream, intent-completeness audits it independently, and the 3-doc-gate is only the final
+   insurance. **Gate:** zero blocking fidelity gaps; no user-only intent-gap remains.
 
 ## PLAN — decomposition for parallel execution — `references/dependency-calc.md`
 
@@ -295,17 +294,17 @@ shared-write guidance (prose). Compute the **Execution Graph** last — a **fenc
 **exactly the enum `RISKY | MECHANICAL | NONE`** (never an ad-hoc value like "high"/"low"). go follows
 it and never re-judges. **Scaffold is
 not a task.** (Any task-order/dependency graph the input carried was discarded in DECOMPOSE; PLAN
-always computes the graph fresh from the spec — the same behavior as the old ready.) **G6:** every
+always computes the graph fresh from the spec.) **Trace gate:** every
 spec requirement maps to ≥1 task (forward); every task grounds in a spec requirement (no orphan); the
 Execution Graph parses.
 
 ## HANDOFF — governing doc + assemble — `references/output-format.md`
 
-Force-load `references/output-format.md` and `references/foundation-format.md`.
+Force-load `references/output-format.md` (+ first cycle: `references/foundation-format.md`).
 
-1. **Write `.dryforge/handoff.md`** — Document Roles (spec = behavior / plan = order·targets) +
-   conflict resolution + file locations (project-root-relative) + hard gates (non-negotiable
-   constraints not derivable from code) + intentionality not captured in spec/plan. (Because produce
+1. **Write `.dryforge/handoff.md`** — the governing doc. The item list is `output-format.md`'s
+   contract — it owns the list (document roles + conflict resolution, file locations, execution
+   shape, hard gates, uncaptured intent). (Because produce
    captures intent directly, this handoff is richer.)
 2. **First cycle — the Foundation is already written (at SPEC); here, fill the governing parts around
    it.** HANDOFF does **not** originate the Foundation — it *assembles*. Keep the Foundation clearly
@@ -327,16 +326,17 @@ read-only, returning a **structured list** (no raw dump). **A single holistic re
 (aim explicitly at the output/interface contract), plus, **first cycle only, a foundation-sufficiency
 *lens*** within the same review (`first-cycle-review.md` rubric on the written Foundation — not a
 second dispatch). It is the *final* backstop and should find little, because intent-completeness
-already routed the guesses to the user. Empty → G7. A blocker → the orchestrator relays it to the user,
+already routed the guesses to the user. Empty → the user gate. A blocker → the orchestrator relays it to the user,
 fixes only the stage it belongs to, then re-runs the gate; a surviving blocker → escalate. (The machine
 0-signal gates — coverage gap, orphan, graph parse — are cheap; keep them in place.)
 
-## G7 — the one human checkpoint
+## USER GATE — the one human checkpoint
 
 Present the completed, verified 3-doc to the user: *"Review this and confirm. If it's right, proceed;
 if not, tell me and I'll fix."* On approval, tell the user to **invoke the `go` skill in this
 session** to execute. Autonomy is executing an **approved** spec, not setting intent — one gate, at
-the end (the only mid-run exception is the REVIEW(A) reopen). Produce → run is one session — the design
+the end (outside ELICIT's dialogue and the intent-completeness loopback, the only mid-run exception
+is the REVIEW(A) reopen). Produce → run is one session — the design
 context carries into go — but **the 3-doc, not the dialogue, is the authority** (it is archived and
 read by later cycles, so it must be self-sufficient).
 

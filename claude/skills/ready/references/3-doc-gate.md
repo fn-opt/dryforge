@@ -2,7 +2,7 @@
 
 After the 3-doc is complete, a fresh subagent that has **not seen the dialogue** verifies it
 independently — to structurally avoid the A=A trap where the author cannot see his own unknown
-unknowns (design-principles §6). This is **one of the skill's two** subagent dispatches — the other is
+unknowns. This is **one of the skill's two** subagent dispatches — the other is
 the earlier **intent-completeness** check; every other stage runs inline because intent grounding needs
 raw context, not a summary (Core principles).
 
@@ -58,14 +58,13 @@ intent-completeness, so this gate expects to find little.
 In a first cycle there is also a written Foundation, so the **same single review** carries one extra
 lens: **foundation sufficiency** — judge the written Foundation against `first-cycle-review.md` (domain
 depth and breadth, technical decisions closed, security project-specific, zero vague modifiers). This
-is a **lens within the one holistic pass, not a second dispatch.** (It was once a separate pass back
-when this gate was the *primary* completeness check; now that intent-completeness owns the deep
-completeness work upstream, the final gate's job is narrow enough to do executability + the foundation
-lens in one review.) In a delta there is no Foundation, so this lens is simply absent.
+is a **lens within the one holistic pass, not a second dispatch.** (intent-completeness owns the deep
+completeness work upstream, so the final gate's job is narrow enough to do executability + the
+foundation lens in one review.) In a delta there is no Foundation, so this lens is simply absent.
 
 ## Process the results
 
-- **Empty → pass to G7.**
+- **Empty → pass to the user gate.**
 - **Blocker present** → the orchestrator relays it to the user (no raw dump), and with the answer
   **fixes only the stage that blocker belongs to**:
   - a user-only intent-gap → reopen ELICIT for that gap only → update SPEC;
@@ -81,7 +80,7 @@ lens in one review.) In a delta there is no Foundation, so this lens is simply a
 (Separate from this gate, the **machine 0-signal gates** — coverage gap, orphan task, graph parse —
 are cheap; keep them in place everywhere. They are not part of this dispatch.)
 
-## Gate (proceed to G7 when)
+## Gate (proceed to the user gate when)
 
 The subagent returns **zero blocking items** (or they were resolved via user escalation), and the
 machine 0-signals are zero.

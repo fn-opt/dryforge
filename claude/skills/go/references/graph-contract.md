@@ -34,8 +34,8 @@ regen_barriers:
   `RISKY` task *with downstream dependents + cascade risk* may add a mid-run spec-review — risk alone
   does not). Multi-task waves always dispatch regardless of risk. **Omitted `risk` = the producer did
   not judge → treat as *unclassified*, not `MECHANICAL`:** go judges at read time and biases toward
-  dispatch / stronger verification if any behavioral surface appears (degrade-don't-corrupt,
-  `design-principles.md §9`); the implementer still judges test ceremony at build time — no break.
+  dispatch / stronger verification if any behavioral surface appears (degrade-don't-corrupt); the
+  implementer still judges test ceremony at build time — no break.
 - **Runtime risk upgrade.** If the producer marked a task `MECHANICAL` / `NONE` but go finds it is
   actually `RISKY` while implementing (an unexpectedly complex state change, an external-system
   integration), the orchestrator strengthens independent verification. It does **not** switch an

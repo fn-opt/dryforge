@@ -95,7 +95,7 @@ The user names a fraction of what's load-bearing; you must surface the rest (the
 from tools that only tidy what was said). But **naming is where this fails silently** — you don't
 sweep what you never named (a real failure: an agent settled "one booking = one service" without ever
 surfacing booking *cardinality* as a decision). An implicit "did I cover enough?" feeling is the
-weakest move (self-judgment, design-principles §6). So **make the surface explicit: enumerate the
+weakest move (self-judgment). So **make the surface explicit: enumerate the
 load-bearing decisions this design is *obligated to answer*, then account for each.**
 
 **1. Name the entities first (a manifest).** List every entity, actor, state-holder, and external
@@ -126,11 +126,11 @@ may become a question:
 1. **The user-model grounds it** (said / derived from the model / a chosen option)? → realize it,
    **don't ask** (the derivable — see "Build a model of the user").
 2. **A tuning value inside an already-settled mechanism** (conventional default / tuned-later, no user
-   preference)? → record a sensible default **marked tunable**, **don't ask** (D4 / §5).
+   preference)? → record a sensible default **marked tunable**, **don't ask**.
 3. **Survives both = `assumed`** (load-bearing, model-silent — you'd pick it as a stranger). This is
    the guess. → **ask** it (domain = extract, technical = present).
 
-So the surface is enumerated *exhaustively* (completeness) while questions stay *minimal* (D4, §12):
+So the surface is enumerated *exhaustively* (completeness) while questions stay *minimal*:
 only `assumed` slots become questions. **An `assumed` slot may not survive into the spec** — that is
 the exit bar, now *observable* (below) rather than a feeling.
 
@@ -203,10 +203,10 @@ Stop and proceed to SPEC **only when all hold** (not merely when the user says "
    are grounded too.
    - It does **NOT** include **tuning values** — a configurable number *within an already-settled
      mechanism* that is a *conventional default* or is *tuned later by feel*, on which the user has no
-     preference. That is the **executor's inference** (§5 derivability, the produce/execute boundary):
+     preference. That is the **executor's inference** (derivability — the produce/execute boundary):
      record a sensible default *marked tunable* and move on. **Do not force-surface tuning values, and
      do not treat a defaulted one as an un-grounded guess** — forcing each into the dialogue is
-     over-asking (§5, §12) and breeds false "ungrounded" findings.
+     over-asking and breeds false "ungrounded" findings.
    - **The test per value:** *does the user genuinely have a preference on it, or is it a conventional
      default / something they'd tune later?* Preference → ground; default/tunable → the executor infers.
      (What is a "mechanism" vs a "tuning value" is judged per project at runtime — never a fixed list.)

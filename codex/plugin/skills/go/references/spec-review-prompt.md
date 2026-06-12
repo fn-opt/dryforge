@@ -27,7 +27,7 @@ holds against the commit message + captured external evidence rather than a file
 
 Flag a **real spec deviation** — missing behavior, a violated invariant, an edge case the spec
 specifies that the code doesn't handle. Do **not** flag style, naming, or quality — that is the
-per-wave reviewer's job. spec is "correct"; measure against it.
+final reviewer's job. spec is "correct"; measure against it.
 
 If the task's spec slice names a testable risk (edge case, invariant, validation) but the task was
 classified RISK=NONE and shipped without a test, flag needs-fix — a real risk was sized away.

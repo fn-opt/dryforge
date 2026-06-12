@@ -38,9 +38,8 @@ extra sweep. (Keep-biased default, applied to classification.)
 
 - **Implementation code** — the agent can re-author it after reading the project, so it is not
   intent. Discard the code itself (but see the conversion below — its *behavioral* content is kept).
-- **Task-order / dependency graph** — PLAN recomputes this from the whole project (decision 8 in the
-  governing skill). Trusting an INPUT-supplied graph would bypass the producer's core computation —
-  so discard it here.
+- **Task-order / dependency graph** — PLAN recomputes this from the whole project. Trusting an
+  INPUT-supplied graph would bypass the producer's core computation — so discard it here.
 - **Pure noise** — but use a *test*, not a vibe: noise = **removing it changes nothing a downstream
   agent must honor.** If a line states or constrains behavior, an invariant, a boundary, or a scope
   edge — even tersely, even as a *repeat* — it is **signal, not noise.** **Repetition is an importance
@@ -98,8 +97,8 @@ that right?"* (pass the candidate through `grounds-gate.md` before it becomes a 
 *Why never self-resolve:* an agent filling a conflict or an unknown on its own is the origin of
 spaghetti drift. The harness is accumulated, refined information, so across cycles the early
 foundation's rules and this cycle's INPUT can diverge — and that conflict is more common in a delta
-than in a first cycle. This generalizes the governing skill's harness-conflict rule (decision 2) to
-*every* source.
+than in a first cycle. This generalizes the governing skill's harness-conflict rule — never resolve
+an input↔harness conflict yourself — to *every* source.
 
 ## Build a presence map — but do not score it
 

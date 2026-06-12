@@ -34,8 +34,10 @@ references load at their steps.
   wins; where plan conflicts with spec, follow the spec.
 - **escalate-don't-guess.** Architecture mismatch, suspected spec violation, ambiguous task,
   unresolvable conflict → stop and **ask the user**; never guess. When a task returns
-  `NEEDS_CONTEXT` / `BLOCKED`, the orchestrator escalates to the user **synchronously** — the run
-  pauses until the user responds, never a silent hang or a timeout-drop. The subagents themselves
+  `NEEDS_CONTEXT` / `BLOCKED`, run the bounded escalation ladder (`orchestration.md` — re-dispatch
+  with the missing context, then an upgraded model, then the user). Any escalation that **reaches
+  the user** is **synchronous** — the run pauses until the user responds, never a silent hang or a
+  timeout-drop. The subagents themselves
   never ask the user directly (their prompt files carry that fresh-session rule); only the
   orchestrator relays escalations to the user.
 - **Protect main; evidence over self-report.** For existing projects, never modify main outside the
@@ -65,8 +67,8 @@ references load at their steps.
   review did not exist**: a blocking finding there is an **execution failure that escaped**, not the
   review doing its job — it should normally find nothing. Told "the review will catch it," an LLM
   drifts to the minimum that passes — that is **reward-hacking**, laziness in the costume of "the
-  backstop handles it," and you must actively resist it (the same discipline ready's ELICIT carries,
-  `design-principles.md §6`). The review catches only the *rare residual*; it is never the owner.
+  backstop handles it," and you must actively resist it (the same discipline ready's ELICIT
+  carries). The review catches only the *rare residual*; it is never the owner.
 - **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed
   and the *specific language* is discovered at runtime, never assumed: produce every user-facing
   output — your reports/escalations **and the harness** you create/update — in the language the user
@@ -103,7 +105,8 @@ references load at their steps.
   initial commit** (an empty repo has no HEAD, so no worktree/branch can be created). If git is not
   installed, stop and say so.
 - **Base determination.** Identify the project's main branch (docs / remote default / ask — do not
-  guess). Verify `main` has no unpushed commits and the working tree has no modified/staged **tracked**
+  guess). Verify `main` has no unpushed commits (when it tracks a remote — a purely local repo has
+  nothing unpushed) and the working tree has no modified/staged **tracked**
   files; if either fails, **stop and report**. Then classify:
   - **Greenfield** (main has no application code — only an init commit, `.gitignore`, or
     producer-generated `.dryforge/`): **base = main**. No feature branch — there is no production
@@ -120,8 +123,9 @@ references load at their steps.
   (hard gates section) or discovered during scaffold from the project's build scripts. Identify them
   before the first wave; they are used in every integration gate and the completion gate.
 - Read **handoff first** (it governs: document roles, hard gates, execution shape), then spec and
-  plan. **First-cycle precondition (check now, not at the end):** if this is a first cycle (no harness
-  on disk) and the handoff has **no** Project Foundation section, that is a **precondition violation** —
+  plan. **First-cycle precondition (check now, not at the end):** if this is a first cycle (no
+  `.dryforge/status.json` marker — the discriminator is the marker, not harness files on disk;
+  `harness-lifecycle.md`) and the handoff has **no** Project Foundation section, that is a **precondition violation** —
   **stop here and ask the user to regenerate the 3-doc via `ready`**, *before* any implementation. Do
   not discover this at step 9 after a wasted run (`harness-lifecycle.md`). **If the handoff has a Project
   Foundation section** (first cycle — `references/foundation-format.md`), read it as **non-executable
@@ -147,7 +151,8 @@ since validation precedes worktree creation).
 
 Parse the graph → topological sort into waves (batches of **≤8 concurrent**). Set up the **base**
 (per Base determination): for existing projects create the feature branch, for greenfield stay on
-main. On the base, set up `.dryforge/` (copy the 3-doc, gitignore, commit). The orchestrator reads
+main. On the base, set up `.dryforge/` (gitignore + commit — the 3-doc is already in place from the
+producer; same working tree, nothing to copy). The orchestrator reads
 `.dryforge/` here — task subagents do **not**; they receive spec slices inline (`orchestration.md`).
 A task whose declared work targets are **state/external only** (no file diff) is handled on the base
 sequentially, **never dispatched into a parallel worktree** — the file-diff merge-gate cannot verify
@@ -192,7 +197,7 @@ when a lightweight fix would take seconds.
    - **Omitted `risk` (producer did not judge) → unclassified, *not* `MECHANICAL`.** Do **not** default
      it to the direct path: judge at read time and **bias toward dispatch / stronger verification** the
      moment any behavioral surface appears (`orchestration.md`, `graph-contract.md` —
-     degrade-don't-corrupt, `design-principles.md §9`).
+     degrade-don't-corrupt).
    - **`RISKY` (file-diff task) → one subagent in a worktree** (`implementer-prompt.md`), then
      **merge-gate** into the base — independent verification, so the final review is not the only
      check on risky work.
@@ -200,12 +205,14 @@ when a lightweight fix would take seconds.
      external evidence.
 2. **Collect or record** — for a subagent, keep its structured summary; for orchestrator-direct work,
    record files changed, commands run, and concerns in the same shape.
-3. **Land + verify** — confirm the commit on the base (`git log`, diff touches declared targets;
+3. **Spec review** (conditional, `spec-review-prompt.md`, **before merge**) — only when the review
+   policy calls for it (RISKY task with downstream dependents): review the task branch's diff before
+   the merge-gate, so a deviation never lands on the base.
+4. **Land + verify** — confirm the commit on the base (`git log`, diff touches declared targets;
    no-file-diff: commit message + captured external evidence). RISKY worktree: merge-gate into the
    base. Then run **regen barriers** and **deferred wiring** if applicable, committed on the base.
-4. **Spec review** (conditional, `spec-review-prompt.md`) — only when the review policy calls for it
-   (RISKY task with downstream dependents). No integration gate — the self-checks on the cumulative
-   base are sufficient for a single-task wave. → next wave.
+   No integration gate — the self-checks on the cumulative base are sufficient for a single-task
+   wave. → next wave.
 
 **Parallel wave** (multiple tasks — worktree isolation required):
 
@@ -223,7 +230,7 @@ when a lightweight fix would take seconds.
    read/edit/run tools — never a plan-only or search-only agent type: an implementer must edit and
    run, a reviewer must read and cross-check).
 3. **Collect** — each returns a structured summary.
-4. **Spec review** (conditional) — only when the review policy calls for it.
+4. **Spec review** (conditional, **before merge**) — only when the review policy calls for it.
 5. **Merge serially** into the base. **Merge-gate per task (objective, not existence-only):** the task
    branch is strictly **ahead** of the base (`git rev-list base..task` non-empty) AND its diff is
    non-empty and touches declared targets — checked with three-dot diff (`git diff base...task`).
@@ -334,8 +341,9 @@ Done only when ALL hold — on **evidence**, not assertion:
   genuinely passes. **Never infer a pass from side-effects** ("the server logged the request", "a file
   appeared", "no error printed") when the declared assertion did not itself succeed; a check you can't
   evaluate is not evidence. (This is A=A self-judgment applied to the gate's own evidence — see header.)
-- no residual escalation outstanding — and any task that returned `NEEDS_CONTEXT` / `BLOCKED` was
-  escalated to the user **synchronously** (the orchestrator pauses the run and waits for the user's
+- no residual escalation outstanding — every task that returned `NEEDS_CONTEXT` / `BLOCKED` was
+  resolved through the bounded escalation ladder, and any escalation that **reached the user** was
+  **synchronous** (the orchestrator pauses the run and waits for the user's
   response — never a silent hang or a timeout-drop). Subagents themselves never ask the user directly
   (the prompt files carry that fresh-session rule); only the orchestrator relays escalations to the user.
 

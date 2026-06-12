@@ -5,7 +5,7 @@ The verification criteria for a project harness. Used by **migration's REVIEW ph
 The spec being verified against is `harness-format.md`.
 
 This is an **adversarial pass**: the reviewer's job is to find holes, not to bless the work
-(self-judgment is the weak move — see design-principles §6). The four dimensions below are *what to
+(self-judgment is the weak move). The four dimensions below are *what to
 check*, applied with judgment — not a box-ticking checklist that earns a pass by being walked.
 
 ## Dimension 1 — content (does each file substantively meet its spec?)

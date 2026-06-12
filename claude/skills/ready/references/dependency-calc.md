@@ -49,7 +49,7 @@ constraints.
 
 Per task, optionally classify the behavioral risk so the implementer can size its **per-task test
 ceremony**. The field shape is `risk: RISKY | MECHANICAL | NONE`. It is **optional**:
-omit it and the implementer judges risk at build time (today's behavior, no break). When present it
+omit it and the implementer judges risk at build time (no break). When present it
 is visible in the 3-doc the user reviews before go runs.
 
 Derivation heuristic (a **floor, not a checklist** — judged per task):

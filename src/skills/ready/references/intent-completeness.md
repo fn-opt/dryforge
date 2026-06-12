@@ -3,7 +3,7 @@
 ELICIT's job is to realize the user's intent with **no stranger-guess surviving on a load-bearing
 decision** (`elicitation.md`). But the author cannot fully police that himself: an agent's own guesses
 look to him like *reasonable understanding* ("of course I'd default it this way") — that is the A=A
-trap (design-principles §6). So before the spec freezes, an **independent perspective** hunts the one
+trap. So before the spec freezes, an **independent perspective** hunts the one
 thing the author can't see: **load-bearing decisions that are the agent's guess, not the user's
 intent** — and each is **looped back to the user** to decide, *while the user is still here*.
 
@@ -30,7 +30,10 @@ Dispatch a fresh subagent that did **not author** the intent. Give it:
   dispositioned surface (each slot `grounded` / `deferred-tunable` / asked-and-answered), the domain
   model, and the user-model. It is independent because it **didn't make the decisions**, *not* because
   it's blind — reading the work is what an independent reviewer does; it is the *authoring*, not the
-  *seeing*, that A=A distrusts. It may also read the **domain/code** (grounds reality).
+  *seeing*, that A=A distrusts. A fresh subagent cannot see this session — **serialize the relevant
+  dialogue verbatim into the dispatch prompt** (or point it at a recorded transcript); never a
+  paraphrase/summary, which silently breaks the evidence base the disposition audit judges against.
+  It may also read the **domain/code** (grounds reality).
 - **Read-only**, returning a **structured list** (no raw dump).
 - **The mandate — audit the decision surface** (`elicitation.md`). Two audits:
   1. **Disposition audit** — for each slot marked `grounded` or `deferred-tunable`, is that defensible
@@ -46,7 +49,7 @@ Dispatch a fresh subagent that did **not author** the intent. Give it:
   (cardinality/composition/identity) resolved silently.
 - **Do NOT flag *tuning values*.** A configurable number within an already-settled mechanism that is a
   conventional default or is tuned later by feel — one the user has no preference on — is the
-  **executor's inference (§5 derivability), not a stranger-guess.** Flagging tuning values is a false
+  **executor's inference (derivability), not a stranger-guess.** Flagging tuning values is a false
   positive and the source of needless findings (`elicitation.md`, "exit bar item 2"). The hunt is for
   *decisions/preferences the user should own*, not for values the implementer reasonably defaults.
 - It does **not** invent the missing intent — it **names the un-grounded decision** as a question for

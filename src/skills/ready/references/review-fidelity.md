@@ -5,7 +5,8 @@ decided in the session land in the document without evaporation or distortion?* 
 cycle: the written Foundation is checked too. **Completeness is deliberately not checked here** — the
 rationale is below; it is not an arbitrary narrowing.
 
-This is the only mid-run user question besides the final gate, and only on the one branch that needs
+Outside ELICIT's dialogue and the intent-completeness user-loopback, this is the only mid-run user
+question besides the final gate, and only on the one branch that needs
 it (a user-only intent-gap). Everything else REVIEW(A) finds, it fixes itself.
 
 ## Check fidelity only — a narrow diff, not a full re-audit

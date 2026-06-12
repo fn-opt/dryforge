@@ -34,8 +34,8 @@ and **wording you adapt** (the example below is one phrasing, not a fixed script
   matter).
 - **Shared-write constraints** — which files are this task's to write, and which **not** to
   touch (the shared/registration files a later wiring step owns).
-- **Worktree pin** — the absolute worktree path + branch; **omit isolation** (do *not* pass
-  `isolation: worktree`, and note there is no `isolation: none` value — the orchestrator already
+- **Worktree pin** — the absolute worktree path + branch; **omit isolation** (do *not* enable the
+  platform's worktree-isolation dispatch option — the orchestrator already
   created the worktree; see `orchestration.md`); verify with `git rev-parse --show-toplevel` before
   editing.
 - **Report contract** — commit when done; return the structured summary below. Do not dump diffs.

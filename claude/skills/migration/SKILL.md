@@ -24,8 +24,8 @@ intent/constraints/decisions that code cannot express, and generates the whole h
 
 migration is a **one-time conversion**, not a task runner. It writes documentation only — it does
 **not** create a 3-doc (that is `ready`'s job) and does **not** execute code (that is `go`'s).
-After it finishes, clear the session before running `ready` → `go`: migration is an
-independent piece of work, and a fresh session keeps the task-level dialogue clean.
+After it finishes, commit the harness and clear the session before running `ready` → `go`:
+migration is an independent piece of work, and a fresh session keeps the task-level dialogue clean.
 
 ## Core principles (apply throughout)
 
@@ -41,7 +41,7 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
 - **Subagents only at the final REVIEW.** SCAN, ELICIT, and GENERATE run inline in the main session —
   generation needs the live conversation's *raw* grounding, not a summary. **REVIEW is the exception:**
   the finished harness is verified by **one independent subagent that did not author it.** Self-judging
-  your own harness is the weakest move (A=A, `design-principles.md §6`), and the harness is the **most
+  your own harness is the weakest move (A=A), and the harness is the **most
   durable artifact in the system** (every later agent works inside it), so it earns the one fresh-eye
   check — the same relaxation `ready` made (generate inline, verify independently). This is the *only*
   dispatch.
@@ -92,7 +92,7 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
 
 ## Phase 1 — SCAN (build the technical map)
 
-Read the project inline (Read, Bash, Grep) — no subagent dispatch. Start with the cheapest map and
+Read the project inline (file reads, shell, search — no subagent dispatch). Start with the cheapest map and
 stop once you can ground ELICIT's questions; deep-read only where you must.
 
 Cover:
@@ -144,9 +144,12 @@ writing sequence is where narration leaks most — emit nothing between writes.
 that did NOT author the harness** to verify it independently. Use a **general-purpose** agent with full
 read/inspect tools (not a plan-only or search-only agent type) so it can cross-check every claim against
 the actual code; give it the harness files + the rubric + **the user's language** (so it judges native
-fidelity), **read-only**, returning a **structured list** (no raw dump). It checks the four dimensions: content (substantive
+fidelity) + **the Phase-2 ledger with every disposition, inline in the dispatch prompt** (the ledger
+is session state — the subagent cannot see it any other way, and the shared rubric does not carry
+it), **read-only**, returning a **structured list** (no raw dump). It checks the four dimensions: content (substantive
 density + quality principles), format (self-containment, altitude, no references), completeness
-(required files present **+ every SCAN-ledger item dispositioned**, §ELICIT), source-cross-check
+(required files present **+ every SCAN-ledger item dispositioned** — judged against the inline
+ledger), source-cross-check
 (omission vs. hallucination, future-scope exempt). The subagent is a fresh session and **cannot ask the
 user** — so the orchestrator relays each finding: internally resolvable → fix directly; needs user
 intent → carry to Phase 5. **A surviving blocker → escalate to the user, do not loop** (the
@@ -164,7 +167,9 @@ why). Resolve any Phase-4 questions that need user intent. On approval:
   the harness already exists, so every change is a **delta**; its absence means first-cycle creation.
 - Confirm `.dryforge/` is in `.gitignore`.
 
-Then migration is complete. Remind the user to clear the session before running `ready` → `go`.
+Then migration is complete. Remind the user to **commit the harness** (migration itself does not
+commit — and a later `go` treats uncommitted files other than `.dryforge/` as foreign work and
+stops), then clear the session before running `ready` → `go`.
 
 ## Completion gate (avoid self-judgment A=A)
 

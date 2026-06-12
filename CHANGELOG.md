@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.1 (2026-06-12)
+
+- v1.1.1 : minor update
+
 ## v1.1.0 (2026-06-09)
 
 - v1.1.0 large update

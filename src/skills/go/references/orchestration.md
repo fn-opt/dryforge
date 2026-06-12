@@ -34,7 +34,7 @@ long as each exit code is captured separately. The completion gate remains the f
     not done), advance. **You own conformance here — the final review is insurance, not your check.**
   - **Omitted `risk`** → the producer did *not* judge; treat it as **unclassified, not `MECHANICAL`** —
     judge at read time and bias toward dispatch / stronger verification if it shows any behavioral
-    surface (degrade-don't-corrupt, `design-principles.md §9`).
+    surface (degrade-don't-corrupt).
   - **`RISKY`** → **dispatch one subagent in a worktree** + merge-gate (independent verification, A=A
     avoidance; the merge-gate protects the base from risky work). This is the parallel-wave machinery
     with a single task — the final review must not be the *only* independent check on risky work.
@@ -87,7 +87,8 @@ dispatch overhead, never the verification bar.
 
 A single-task wave runs in one of three modes (by `risk` + target type; see Wave scheduling).
 
-- **Orchestrator-direct** (`MECHANICAL` / `NONE` / omitted, file-diff task). The orchestrator
+- **Orchestrator-direct** (`MECHANICAL` / `NONE` file-diff task; an omitted-`risk` task takes this
+  path only after the read-time judgment finds no behavioral surface — see Wave scheduling). The orchestrator
   implements directly on the base — it reads the task's behavioral contract + spec slice itself (no
   prompt authoring, no dispatch), writes the code, runs right-sized verification (capturing command +
   exit code), and commits on the base. No worktree, no dependency install, no integration gate, **no
@@ -97,12 +98,13 @@ A single-task wave runs in one of three modes (by `risk` + target type; see Wave
   not silently push on. **Keep the sawtooth** — load the task's files, work, commit, drop what the
   next task won't need.
 - **Subagent in a worktree** (`RISKY`, file-diff task). The parallel-wave machinery with one task:
-  create a worktree off the base, dispatch one implementer (pinned to the worktree absolute path; omit
-  `isolation: worktree`; verify with `git rev-parse --show-toplevel`), collect its structured
+  create a worktree off the base, dispatch one implementer (pinned to the worktree absolute path;
+  do not enable the platform's worktree-isolation dispatch option — the worktree already exists;
+  verify with `git rev-parse --show-toplevel`), collect its structured
   summary, then **merge-gate** into the base (strictly ahead + diff touches declared targets).
   Independent verification is the point.
 - **No-file-diff task (any risk) — base-pinned subagent.** Dispatch one implementer pinned to the
-  **base** directory (omit `isolation: worktree`); it commits on the base. Verification is the
+  **base** directory (again, no platform isolation option); it commits on the base. Verification is the
   **commit message + captured external evidence** (command exit / render / API or state response),
   not a file diff. (A worktree would isolate files, not the external runtime it mutates, and the
   file-diff merge-gate can't verify it.)
@@ -116,8 +118,9 @@ cross-wave interactions at the end.
 
 ## Parallel wave — dispatch constraints (safety, non-negotiable; unordered)
 
-- **Do not pass `isolation: worktree` to implementer dispatch** — omit isolation so the
-  implementer runs in place, **pinned to the pre-created absolute worktree path**, and verify
+- **Do not enable the platform's worktree-isolation option on implementer dispatch** — the
+  worktree is already created; omit any isolation so the implementer runs in place, **pinned to the
+  pre-created absolute worktree path**, and verify
   location with `git rev-parse --show-toplevel` at the subagent's start.
 - **Create worktrees serially, under `.dryforge/worktrees/`.** Each task worktree lives at
   `.dryforge/worktrees/<task-id>` — inside the gitignored `.dryforge/`, so worktrees never sprawl into
@@ -214,32 +217,39 @@ re-dispatching past the ladder.
 
 ### Sequential wave (single task)
 
-1. **Pick the execution mode by `risk`** (see Wave scheduling): `MECHANICAL`/`NONE`/omitted →
-   orchestrator implements directly on the base; `RISKY` → a worktree subagent + merge-gate; a
-   no-file-diff task → a base-pinned subagent. (Details in "Sequential wave — execution".)
-2. **Land it on the base** — orchestrator-direct / no-file-diff: verify the commit on the base
+1. **Pick the execution mode by `risk`** (see Wave scheduling): `MECHANICAL`/`NONE` →
+   orchestrator implements directly on the base (omitted `risk` = unclassified — judge at read time,
+   and take the direct path only when no behavioral surface shows); `RISKY` → a worktree subagent +
+   merge-gate; a no-file-diff task → a base-pinned subagent. (Details in "Sequential wave — execution".)
+2. **Spec review** (conditional, **before merge**) — only when the review policy calls for it.
+   Review the task branch's diff before the merge-gate, so a deviation is caught before it lands on
+   the base (a no-file-diff task is judged from its commit message + captured external evidence —
+   `spec-review-prompt.md`).
+3. **Land it on the base** — orchestrator-direct / no-file-diff: verify the commit on the base
    (`git log`; file-diff touches declared targets; no-file-diff: commit message + captured external
    evidence). RISKY worktree: verify commit existence, then **merge-gate** into the base (strictly
    ahead + diff touches declared targets). Never trust self-report.
-3. **Regen barriers** — run barriers whose `after` is now satisfied. Commit regenerated output if a
+4. **Regen barriers** — run barriers whose `after` is now satisfied. Commit regenerated output if a
    later task depends on it. Recovery: if a barrier exits non-zero, capture command + exit + stderr,
    analyze whether a prior merge broke a precondition; if it would overwrite merged files, escalate.
-4. **Deferred wiring** — if applicable, the single writer appends shared registrations directly
+5. **Deferred wiring** — if applicable, the single writer appends shared registrations directly
    (no parallel siblings to collide). Commit on the base.
-5. **Spec review** (conditional) — only when the review policy calls for it.
 6. **No integration gate.** The self-checks ran on the cumulative base. → next wave.
 
 ### Parallel wave (multiple tasks)
 
-1. **Merge serially** into the base (commit-existence verified first). **Merge-gate:** task branch
+1. **Spec review** (conditional, **before merge**) — only when the review policy calls for it
+   (a RISKY task with downstream dependents + cascade risk): review that task's branch diff before
+   merging it, so a deviation is caught before it lands on the base.
+2. **Merge serially** into the base (commit-existence verified first). **Merge-gate:** task branch
    strictly ahead, diff touches declared **file** targets (three-dot). (No-file-diff tasks never
    reach this path — they were handled on the base; see Wave scheduling.) Merge commit must satisfy hooks.
    Recovery: inspect hook output, verify branch state, retry with discovered convention; else escalate.
-2. **Regen barriers** — same as sequential. Commit if downstream depends on it.
-3. **Deferred wiring** — the single writer appends all registrations, **idempotently**
+3. **Regen barriers** — same as sequential. Commit if downstream depends on it.
+4. **Deferred wiring** — the single writer appends all registrations, **idempotently**
    (check-before-append; conflicts → escalate). **Commit on the base** — uncommitted wiring is
    silently lost to later worktrees and the final merge.
-4. **Integration gate** — run the project's verify commands on the merged + wired base; **green =
+5. **Integration gate** — run the project's verify commands on the merged + wired base; **green =
    exit 0, output captured**. This catches cross-task interactions. Failure → fix-dispatch or
    escalate. **If the producer found zero verify commands**, the absence of a gate is a recorded
    decision, not silence. **Record the base tip SHA after the gate passes** (e.g. `GATE_SHA=$(git rev-parse HEAD)`) — the
@@ -248,10 +258,11 @@ re-dispatching past the ladder.
    commands in a single Bash call, backgrounding each and collecting its exit code individually
    (e.g. `cmd1 & p1=$!; cmd2 & p2=$!; wait $p1; e1=$?; wait $p2; e2=$?`), then report per-command
    pass/fail.
-5. **Spec review** (conditional) — only when the review policy calls for it.
-6. **Clean up** task worktrees — only after asserting ancestor (`git merge-base --is-ancestor`).
-   Safe remove (no `--force`); remove share-symlinks first. Delete merged task branches.
-   Failed tasks' worktrees preserved for diagnosis. → next wave.
+6. **Clean up or recycle** task worktrees — if a later parallel wave exists, **recycle** pooled
+   worktrees (reset to the new base tip — Dispatch constraints, worktree pool) instead of removing;
+   batch-remove all worktrees only after the last parallel wave. When removing: only after asserting
+   ancestor (`git merge-base --is-ancestor`); safe remove (no `--force`); remove share-symlinks
+   first. Delete merged task branches. Failed tasks' worktrees preserved for diagnosis. → next wave.
 
 ### Advancing waves
 
