@@ -334,6 +334,9 @@ the user's answer — it never silently hangs, fires-and-forgets, or proceeds on
 user; they return their escalation through their structured result, and the orchestrator relays it
 to the user synchronously.)
 
+When passing a user decision to a later implementer or reviewer, include the question, options
+shown, and the user's answer verbatim. A summary of the selection can lose the stated rationale.
+
 **Detection ≠ diagnosis.** Spotting that something broke is not the same as correctly
 attributing *why*. A confident but wrong cause-attribution is possible — verify it against the
 actual commands and output (not a self-report or a shallow grep) before acting destructively or

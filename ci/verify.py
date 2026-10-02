@@ -326,6 +326,26 @@ def validate_licenses(root: Path) -> None:
     print(f"OK license copies ({len(copies)})")
 
 
+def validate_decision_record_source_fidelity(root: Path) -> None:
+    # Static prompt-contract regressions, not model executions. The paired transcripts and
+    # expected/rejected behavior in the fixture can also be used for a future behavioral eval.
+    fixture = root / "ci/fixtures/decision-record-source-fidelity.json"
+    cases = json.loads(fixture.read_text(encoding="utf-8"))
+    failures: list[str] = []
+    for case in cases:
+        for filename, clauses in case["required_contract"].items():
+            skills = ("go",) if filename == "orchestration.md" else ("go", "migration")
+            for skill in skills:
+                relative = Path("src/skills") / skill / "references" / filename
+                text = " ".join((root / relative).read_text(encoding="utf-8").split())
+                for clause in clauses:
+                    if clause not in text:
+                        failures.append(f"{case['name']}: {relative}: missing {clause!r}")
+    if failures:
+        raise VerificationError("decision-record source-fidelity contract:\n" + "\n".join(failures))
+    print(f"OK decision-record source-fidelity contracts ({len(cases)} paired cases; static)")
+
+
 def verify(root: Path, tag: str | None = None) -> None:
     required = [
         "CHANGELOG.md",
@@ -354,6 +374,7 @@ def verify(root: Path, tag: str | None = None) -> None:
     validate_antigravity_package(root)
     validate_codex_invocation(root)
     validate_licenses(root)
+    validate_decision_record_source_fidelity(root)
     validate_reproducible_build(root)
 
 

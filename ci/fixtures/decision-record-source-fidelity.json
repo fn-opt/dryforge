@@ -1,0 +1,45 @@
+[
+  {
+    "name": "choice_without_reason",
+    "question": "Which database should we use?",
+    "options": ["SQLite", "PostgreSQL"],
+    "answer": "SQLite.",
+    "other_recorded_reasoning": null,
+    "expected": "Record SQLite as chosen and PostgreSQL as not chosen, with no reason given. The reviewer accepts the missing rationale as meeting the ADR quality floor.",
+    "reject": "PostgreSQL was rejected because it is too complex to operate.",
+    "required_contract": {
+      "harness-format.md": [
+        "If the user chose without giving a reason and no source records one, write \"no reason given\" in the user's language",
+        "this meets the floor",
+        "Never invent a rationale"
+      ],
+      "harness-review.md": [
+        "An unsupported rationale is a blocking hallucination",
+        "An explicit \"no reason given\" when no source records one meets the ADR quality floor",
+        "do not treat it as a hollow section or infer a reason"
+      ]
+    }
+  },
+  {
+    "name": "choice_with_stated_reason",
+    "question": "Which database should we use?",
+    "options": ["SQLite", "PostgreSQL"],
+    "answer": "SQLite, because the deployment must work offline without a separate database service.",
+    "other_recorded_reasoning": null,
+    "expected": "Preserve the offline deployment and no separate service rationale. Pass the question, options, and exact answer to the reviewer, who accepts this supported rationale.",
+    "reject": "Passing only 'The user chose SQLite' and then flagging the recorded offline deployment rationale as invented.",
+    "required_contract": {
+      "harness-format.md": [
+        "rejection reasons supported by the user's words, source material, or recorded design reasoning",
+        "If the user gave a reason, preserve it faithfully"
+      ],
+      "harness-review.md": [
+        "User decisions must reach the reviewer verbatim: the question, options shown, and answer",
+        "When the user gave a reason, check against their actual words, not a summary of their selection"
+      ],
+      "orchestration.md": [
+        "include the question, options shown, and the user's answer verbatim"
+      ]
+    }
+  }
+]

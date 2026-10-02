@@ -291,11 +291,13 @@ of information, not a stack or domain — if the project has none of that kind, 
   an obvious one. Test: "could another team in the same situation have chosen differently?" — if so,
   it's a record.
 - **Each decision**: context (why the decision was needed); decision (what was chosen); alternatives
-  (what was not chosen, and concretely why); consequences (the constraints/effects this imposes on
+  (what was not chosen, and why as recorded); consequences (the constraints/effects this imposes on
   future work, including what it made impossible).
 - **Quality floor**: context states the concrete situation that forced the decision; alternatives
-  give specific rejection reasons, not "considered but rejected"; consequences include what is now
-  impossible.
+  give specific rejection reasons supported by the user's words, source material, or recorded
+  design reasoning; consequences include what is now impossible. If the user chose without giving
+  a reason and no source records one, write "no reason given" in the user's language — this meets
+  the floor. Never invent a rationale. If the user gave a reason, preserve it faithfully.
 
 ### tracking/findings.md — unresolved problems
 - **Criterion**: only problems not resolved on the spot. A problem fixed in place is not recorded.

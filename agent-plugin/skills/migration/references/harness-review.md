@@ -78,6 +78,12 @@ that reads as generic boilerplate, restates what code shows, or fills a section 
 
 Cross-check the harness against the code, **both directions**:
 
+For decision rationale, also cross-check the user's words, source material, and recorded design
+reasoning. User decisions must reach the reviewer verbatim: the question, options shown, and answer.
+An unsupported rationale is a blocking hallucination. An explicit "no reason given" when no source
+records one meets the ADR quality floor; do not treat it as a hollow section or infer a reason.
+When the user gave a reason, check against their actual words, not a summary of their selection.
+
 - **Omission** — an intent / constraint / mechanism that the code **cannot derive on its own** is
   missing from the docs. This is the real omission. *Code-derivable facts being absent is not an
   omission* — by the non-derivability principle, the harness deliberately omits them.
